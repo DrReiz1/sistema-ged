@@ -1,32 +1,38 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 export const Desktop = (): JSX.Element => {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [, navigate] = useLocation();
 
-  const fields = [
-    {
-      id: "email",
-      label: "E-mail",
-      type: "email",
-      icon: "/figmaAssets/icon.svg",
-      iconAlt: "Ícone de e-mail",
-      inputClassName: "pl-14 pr-4",
-      wrapperClassName: "",
+  const loginMutation = useMutation({
+    mutationFn: () =>
+      apiRequest("POST", "/api/login", { username: email, password }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      navigate("/dashboard");
     },
-    {
-      id: "password",
-      label: "Senha",
-      type: showPassword ? "text" : "password",
-      icon: "/figmaAssets/icon-2.svg",
-      iconAlt: "Ícone de senha",
-      inputClassName: "pl-14 pr-14",
-      wrapperClassName: "relative",
+    onError: async (err: any) => {
+      const body = await err.response?.json?.().catch(() => null);
+      setError(body?.message || "E-mail ou senha incorretos.");
     },
-  ];
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    loginMutation.mutate();
+  };
 
   return (
     <main className="min-h-screen w-full overflow-x-auto bg-[#dbd8d3]">
@@ -59,55 +65,85 @@ export const Desktop = (): JSX.Element => {
                 Gerenciamento de documentos técnicos
               </p>
             </div>
-            <form className="mt-[47px] space-y-[27px]">
-              {fields.map((field) => (
-                <div key={field.id} className={field.wrapperClassName}>
-                  <Label
-                    htmlFor={field.id}
-                    className="[font-family:'Arial-Bold',Helvetica] text-xl font-bold leading-none text-[#ff2c2ccc]"
-                  >
-                    {field.label}
-                  </Label>
-                  <div className="relative mt-[8px]">
-                    <img
-                      className={`absolute left-[18px] top-1/2 h-auto w-[18px] -translate-y-1/2 object-contain ${
-                        field.id === "email" ? "w-[18px]" : "w-[19px]"
-                      }`}
-                      alt={field.iconAlt}
-                      src={field.icon}
-                    />
-                    <Input
-                      id={field.id}
-                      type={field.type}
-                      defaultValue=""
-                      className={`h-[38px] rounded-[10px] border-black/50 bg-[#f7f2f2] text-base shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 ${field.inputClassName}`}
-                    />
-                    {field.id === "password" && (
-                      <button
-                        type="button"
-                        aria-label={
-                          showPassword ? "Ocultar senha" : "Mostrar senha"
-                        }
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-[14px] top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center"
-                      >
-                        <img
-                          className="h-auto w-[15px] object-contain"
-                          alt="Mostrar senha"
-                          src="/figmaAssets/icon-1.svg"
-                        />
-                      </button>
-                    )}
-                  </div>
+            <form className="mt-[47px] space-y-[27px]" onSubmit={handleSubmit}>
+              <div>
+                <Label
+                  htmlFor="email"
+                  className="[font-family:'Arial-Bold',Helvetica] text-xl font-bold leading-none text-[#ff2c2ccc]"
+                >
+                  E-mail
+                </Label>
+                <div className="relative mt-[8px]">
+                  <img
+                    className="absolute left-[18px] top-1/2 h-auto w-[18px] -translate-y-1/2 object-contain"
+                    alt="Ícone de e-mail"
+                    src="/figmaAssets/icon.svg"
+                  />
+                  <Input
+                    id="email"
+                    data-testid="input-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className="h-[38px] rounded-[10px] border-black/50 bg-[#f7f2f2] pl-14 pr-4 text-base shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
                 </div>
-              ))}
+              </div>
+
+              <div className="relative">
+                <Label
+                  htmlFor="password"
+                  className="[font-family:'Arial-Bold',Helvetica] text-xl font-bold leading-none text-[#ff2c2ccc]"
+                >
+                  Senha
+                </Label>
+                <div className="relative mt-[8px]">
+                  <img
+                    className="absolute left-[18px] top-1/2 h-auto w-[19px] -translate-y-1/2 object-contain"
+                    alt="Ícone de senha"
+                    src="/figmaAssets/icon-2.svg"
+                  />
+                  <Input
+                    id="password"
+                    data-testid="input-password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="h-[38px] rounded-[10px] border-black/50 bg-[#f7f2f2] pl-14 pr-14 text-base shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-[14px] top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center"
+                  >
+                    <img
+                      className="h-auto w-[15px] object-contain"
+                      alt="Mostrar senha"
+                      src="/figmaAssets/icon-1.svg"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <p data-testid="text-error" className="text-center text-sm text-red-600">
+                  {error}
+                </p>
+              )}
 
               <div className="flex justify-center pt-[38px]">
                 <Button
+                  data-testid="button-login"
                   type="submit"
+                  disabled={loginMutation.isPending}
                   className="h-auto min-w-[121px] rounded-[4px] border border-[#bf0f0c] bg-[#ff201a] px-10 py-[9px] text-xl font-normal text-[#fde8e7] hover:bg-[#eb221e]"
                 >
-                  Entrar
+                  {loginMutation.isPending ? "Entrando..." : "Entrar"}
                 </Button>
               </div>
             </form>
