@@ -1,33 +1,79 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { Desktop } from "@/pages/Desktop";
-import { Dashboard } from "@/pages/Dashboard";
+import { AppLayout } from "@/layouts/AppLayout";
+import { Home } from "@/pages/Home";
+import { Documents } from "@/pages/Documents";
+import { DocumentView } from "@/pages/DocumentView";
+import { Upload } from "@/pages/Upload";
+import { History } from "@/pages/History";
+import { Groups } from "@/pages/Groups";
+import { Settings } from "@/pages/Settings";
+import { Profile } from "@/pages/Profile";
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  const [, navigate] = useLocation();
-  const { data: user, isLoading } = useQuery<{ id: string; username: string } | null>({
-    queryKey: ["/api/me"],
-    retry: false,
-  });
-
-  if (isLoading) return null;
-  if (!user) {
-    navigate("/");
-    return null;
-  }
-  return <Component />;
-}
-
-function Router() {
+function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={Desktop} />
       <Route path="/dashboard">
-        {() => <ProtectedRoute component={Dashboard} />}
+        {() => (
+          <AppLayout>
+            <Home />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/documents/:id">
+        {(params) => (
+          <AppLayout>
+            <DocumentView />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/documents">
+        {() => (
+          <AppLayout>
+            <Documents />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/upload">
+        {() => (
+          <AppLayout>
+            <Upload />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/history">
+        {() => (
+          <AppLayout>
+            <History />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/groups">
+        {() => (
+          <AppLayout>
+            <Groups />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/settings">
+        {() => (
+          <AppLayout>
+            <Settings />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/profile">
+        {() => (
+          <AppLayout>
+            <Profile />
+          </AppLayout>
+        )}
       </Route>
       <Route component={NotFound} />
     </Switch>
@@ -39,7 +85,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <AppRoutes />
       </TooltipProvider>
     </QueryClientProvider>
   );

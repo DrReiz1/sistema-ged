@@ -1,0 +1,156 @@
+Especificações mais técnicas para você guiar: OBJETIVO
+
+Desenvolver exclusivamente o protótipo visual front-end do sistema GED baseado no SDD previamente enviado, nos layouts do Figma e na referência visual/funcional do Paperless NGX.
+
+Estamos atualmente apenas na fase de modelagem visual do sistema.
+
+Ignore backend, autenticação real, banco de dados e integrações.
+
+O foco é exclusivamente UX/UI profissional e navegação visual funcional.
+
+STACK OBRIGATÓRIO
+
+* Next.js 15
+* React
+* TypeScript
+* Tailwind CSS
+* shadcn/ui
+* Lucide React Icons
+* Framer Motion apenas para micro animações suaves
+* App Router
+* Estrutura modular por componentes
+
+Não utilize Bootstrap, Material UI, CSS puro extenso ou bibliotecas antigas.
+
+ARQUITETURA FRONT-END
+
+Estruture o projeto como um sistema SaaS enterprise moderno:
+
+* Sidebar fixa à esquerda
+* Topbar superior
+* Navegação SPA simulada
+* Componentização reutilizável
+* Layout responsivo desktop-first
+* Estrutura organizada em:
+
+  * components/
+  * app/
+  * modules/
+  * layouts/
+  * mock/
+  * hooks/
+
+Utilize dados mockados apenas para representação visual.
+
+Não implementar backend.
+
+DIRETRIZES VISUAIS
+
+A interface deve seguir:
+
+* estilo enterprise moderno
+* visual semelhante ao Paperless NGX
+* identidade visual baseada nas cores institucionais da TSEA
+* baixa poluição visual
+* foco em produtividade operacional
+* aparência corporativa industrial moderna
+* design clean e sofisticado
+* espaçamentos consistentes
+* tipografia profissional
+* cards suaves
+* sombras discretas
+* bordas arredondadas moderadas
+* tabelas modernas
+* modais elegantes
+* componentes altamente reutilizáveis
+
+Utilize o Figma enviado como principal referência visual de:
+
+* posicionamento
+* cores
+* hierarquia
+* layout
+* espaçamento
+
+TELAS OBRIGATÓRIAS
+
+* Login
+* Dashboard/Início
+* Documentos
+* Visualização de Documento
+* Upload de Documento
+* Grupos e Usuários
+* Configurações
+* Histórico
+* Pesquisa global
+* Perfil do usuário
+
+LOGIN
+
+A tela de login deve conter:
+
+* logo oficial da TSEA
+* campo e-mail corporativo
+* campo senha
+* botão “Entrar”
+* visual semelhante ao Figma enviado
+
+Após login, redirecionar automaticamente para “Início”.
+
+SIDEBAR
+
+A sidebar deve conter:
+
+* ícones modernos
+* navegação clara
+* estados ativos
+* hover states
+* sessões organizadas
+
+Menus:
+
+* Início
+* Documentos
+* Upload
+* Histórico
+* Grupos e Usuários
+* Configurações
+
+COMPORTAMENTO
+
+Antes de implementar qualquer tela:
+
+* consulte novamente o SDD
+* valide funcionalidades
+* siga rigorosamente os requisitos funcionais descritos
+
+Use o Paperless NGX como principal referência funcional.
+
+RESTRIÇÕES
+
+* Não desenvolver backend
+* Não criar APIs
+* Não conectar banco
+* Não implementar autenticação real
+* Não focar em lógica
+* Não focar em performance backend
+
+Todo o esforço deve estar concentrado em:
+
+* UX
+* UI
+* navegabilidade
+* componentização
+* consistência visual
+* experiência enterprise profissional
+
+OUTPUT ESPERADO
+
+Gerar:
+
+* estrutura completa do front-end
+* telas navegáveis
+* componentes reutilizáveis
+* design system consistente
+* protótipo visual altamente profissional
+* código limpo e organizado como um frontend senior enterprise
