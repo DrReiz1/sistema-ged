@@ -1,3 +1,6 @@
+@import url("https://fonts.googleapis.com/css?family=Inter:700,400");
+
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -6,8 +9,6 @@
     all: unset;
   }
 }
-
-@import url("https://fonts.googleapis.com/css?family=Inter:700,400");
 
 :root {
   --body-base-font-family: "Inter", Helvetica;
@@ -31,9 +32,6 @@
   --colorsred: rgba(255, 66, 69, 1);
   --image-placeholder: rgba(227, 227, 227, 1);
   --m3syslighton-surface: rgba(29, 27, 32, 1);
-}
-
-:root {
   --animate-spin: spin 1s linear infinite;
 }
 
@@ -139,10 +137,6 @@
     transform: translateY(calc(-100% - var(--gap)));
   }
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {
