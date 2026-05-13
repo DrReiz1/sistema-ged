@@ -2,30 +2,35 @@ import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Home, User, Tag, Folder, FileText,
-  Settings, SlidersHorizontal, Users, AlignLeft, X
+  Settings, SlidersHorizontal, Users, AlignLeft, X, Upload
 } from "lucide-react";
+import { type UserRole, roleConfig } from "@/lib/roles";
 
-const navItems = [
+const allNavItems = [
   { href: "/dashboard",      icon: LayoutDashboard,   label: "Início" },
   { href: "/documents",      icon: Home,              label: "Documentos" },
+  { href: "/upload",         icon: Upload,            label: "Publicar Documento" },
   { href: "/correspondents", icon: User,              label: "Correspondentes" },
   { href: "/tags",           icon: Tag,               label: "Etiquetas" },
-  { href: "/storage-paths",  icon: Folder,            label: "Caminhos de Armazenamento" },
+  { href: "/storage-paths",  icon: Folder,            label: "Caminhos" },
   { href: "/doc-types",      icon: FileText,          label: "Tipos de Documento" },
+  { href: "/history",        icon: AlignLeft,         label: "Logs de Auditoria" },
   { href: "/settings",       icon: Settings,          label: "Configurações" },
-  { href: "/customize",      icon: SlidersHorizontal, label: "Personalização" },
   { href: "/groups",         icon: Users,             label: "Usuários & Grupos" },
-  { href: "/history",        icon: AlignLeft,         label: "Logs" },
+  { href: "/customize",      icon: SlidersHorizontal, label: "Personalização" },
 ];
 
 interface SidebarProps {
   collapsed: boolean;
+  role: UserRole;
   isMobile?: boolean;
   onClose?: () => void;
 }
 
-export function Sidebar({ collapsed, isMobile = false, onClose }: SidebarProps) {
+export function Sidebar({ collapsed, role, isMobile = false, onClose }: SidebarProps) {
   const [location] = useLocation();
+  const allowed = roleConfig[role].allowedRoutes;
+  const navItems = allNavItems.filter((item) => allowed.includes(item.href));
 
   const isActive = (href: string) =>
     location === href || (href !== "/dashboard" && location.startsWith(href));

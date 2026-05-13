@@ -3,17 +3,25 @@ import { type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, hashPassword } from "./auth";
 
-async function seedDefaultUser() {
-  const existing = await storage.getUserByUsername("admin@tsea.com.br");
-  if (!existing) {
-    const hashed = await hashPassword("tsea@2024");
-    await storage.createUser({ username: "admin@tsea.com.br", password: hashed });
-    console.log("Usuário padrão criado: admin@tsea.com.br / tsea@2024");
+const defaultUsers = [
+  { username: "admin@tsea.com.br",      password: "tsea@2024", role: "administrador" },
+  { username: "supervisor@tsea.com.br", password: "tsea@2024", role: "supervisor" },
+  { username: "operador@tsea.com.br",   password: "tsea@2024", role: "operador" },
+];
+
+async function seedUsers() {
+  for (const u of defaultUsers) {
+    const existing = await storage.getUserByUsername(u.username);
+    if (!existing) {
+      const hashed = await hashPassword(u.password);
+      await storage.createUser({ username: u.username, password: hashed, role: u.role });
+      console.log(`Usuário criado: ${u.username} [${u.role}]`);
+    }
   }
 }
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   setupAuth(app);
-  await seedDefaultUser();
+  await seedUsers();
   return httpServer;
 }

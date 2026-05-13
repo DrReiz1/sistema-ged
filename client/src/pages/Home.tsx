@@ -2,7 +2,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, FileText, Star, CheckSquare, ChevronRight, Upload } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { mockDocuments, mockDocumentTypes, mockBatchCompletions, dashboardStats } from "@/mock/data";
+import { getRole, roleConfig } from "@/lib/roles";
 
 const statusColor: Record<string, string> = {
   indexado: "bg-emerald-100 text-emerald-700",
@@ -13,6 +15,13 @@ const statusColor: Record<string, string> = {
 export function Home() {
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
+
+  const { data: user } = useQuery<{ id: string; username: string; role: string } | null>({
+    queryKey: ["/api/me"],
+    retry: false,
+  });
+  const role = getRole(user?.role);
+  const perms = roleConfig[role];
 
   const favorites = mockDocuments.filter((d) => d.isFavorite);
   const recent = mockDocuments.slice(0, 8);
@@ -166,12 +175,14 @@ export function Home() {
             </div>
           </div>
 
-          {/* Ação rápida */}
-          <Link href="/upload">
-            <button className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-[#FF201A] text-white text-sm font-semibold hover:bg-[#e01a14] transition-colors border border-[#bf0f0c] shadow-sm">
-              <Upload size={15} /> Enviar Documento
-            </button>
-          </Link>
+          {/* Ação rápida — só admin pode publicar */}
+          {perms.canUpload && (
+            <Link href="/upload">
+              <button className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-[#FF201A] text-white text-sm font-semibold hover:bg-[#e01a14] transition-colors border border-[#bf0f0c] shadow-sm">
+                <Upload size={15} /> Publicar Documento
+              </button>
+            </Link>
+          )}
         </motion.div>
       </div>
     </div>

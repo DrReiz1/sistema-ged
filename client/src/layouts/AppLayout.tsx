@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/sidebar/Sidebar";
 import { Topbar } from "@/components/topbar/Topbar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { getRole, roleConfig } from "@/lib/roles";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -13,19 +14,32 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const isMobile = useIsMobile();
 
-  const { data: user, isLoading } = useQuery<{ id: string; username: string } | null>({
+  const { data: user, isLoading } = useQuery<{ id: string; username: string; role: string } | null>({
     queryKey: ["/api/me"],
     retry: false,
   });
+
+  const role = getRole(user?.role);
+  const allowed = roleConfig[role].allowedRoutes;
 
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/");
     }
   }, [isLoading, user, navigate]);
+
+  // Redirect if the current route is not allowed for this role
+  useEffect(() => {
+    if (!isLoading && user) {
+      const base = "/" + location.split("/")[1];
+      if (!allowed.includes(base)) {
+        navigate("/dashboard");
+      }
+    }
+  }, [isLoading, user, location, allowed, navigate]);
 
   useEffect(() => {
     if (!isMobile) setMobileOpen(false);
@@ -59,12 +73,12 @@ export function AppLayout({ children }: AppLayoutProps) {
               mobileOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
-            <Sidebar collapsed={false} isMobile onClose={() => setMobileOpen(false)} />
+            <Sidebar collapsed={false} role={role} isMobile onClose={() => setMobileOpen(false)} />
           </div>
         </>
       ) : (
         <div className="relative flex-shrink-0">
-          <Sidebar collapsed={collapsed} />
+          <Sidebar collapsed={collapsed} role={role} />
           <button
             onClick={() => setCollapsed((c) => !c)}
             data-testid="button-sidebar-toggle"

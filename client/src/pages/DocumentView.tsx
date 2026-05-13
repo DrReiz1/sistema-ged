@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Download, Trash2, Tag, User, Calendar, FileText, Edit3, Hash, GitBranch, CheckCircle, Shield, HardDrive, CheckSquare, Star } from "lucide-react";
+import { ArrowLeft, Download, Trash2, Tag, User, Calendar, FileText, Edit3, Hash, GitBranch, CheckCircle, Shield, HardDrive, CheckSquare, Star, Upload } from "lucide-react";
 import { mockDocuments, mockDocumentTypes, mockCorrespondents, mockStoragePaths } from "@/mock/data";
+import { getRole, roleConfig } from "@/lib/roles";
 
 const statusColor: Record<string, string> = {
   indexado: "bg-emerald-100 text-emerald-700",
@@ -17,6 +19,13 @@ export function DocumentView() {
   const [batchCode, setBatchCode] = useState("");
   const [batchNotes, setBatchNotes] = useState("");
   const [batchDone, setBatchDone] = useState(false);
+
+  const { data: user } = useQuery<{ id: string; username: string; role: string } | null>({
+    queryKey: ["/api/me"],
+    retry: false,
+  });
+  const role = getRole(user?.role);
+  const perms = roleConfig[role];
 
   const doc = mockDocuments.find((d) => d.id === Number(id));
 
@@ -43,6 +52,83 @@ export function DocumentView() {
     setBatchNotes("");
     setTimeout(() => setBatchDone(false), 4000);
   };
+
+  const ActionsPanel = ({ testIdSuffix = "" }: { testIdSuffix?: string }) => (
+    <div className="flex flex-col gap-2 p-4">
+      <button
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF201A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#e01a14] transition-colors border border-[#bf0f0c]"
+        data-testid={`button-download${testIdSuffix}`}
+      >
+        <Download size={14} /> Baixar Versão Vigente
+      </button>
+
+      {perms.canEditMetadata && (
+        <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+          <Edit3 size={14} /> Editar Metadados
+        </button>
+      )}
+
+      {perms.canBatchCompletion && (
+        <button
+          onClick={() => setShowBatchForm((v) => !v)}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+          data-testid={`button-batch-completion${testIdSuffix}`}
+        >
+          <CheckSquare size={14} /> Registrar Conclusão de Lote
+        </button>
+      )}
+
+      {perms.canPublishRevision && (
+        <button
+          onClick={() => navigate("/upload")}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+        >
+          <Upload size={14} /> Publicar Nova Revisão
+        </button>
+      )}
+
+      {perms.canDelete && (
+        <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-100 bg-white px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+          <Trash2 size={14} /> Excluir Documento
+        </button>
+      )}
+
+      {role === "operador" && (
+        <p className="text-center text-[10px] text-gray-400 mt-1">
+          Permissões limitadas ao perfil Operador
+        </p>
+      )}
+    </div>
+  );
+
+  const BatchForm = () => (
+    <AnimatePresence>
+      {showBatchForm && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+          className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/50 shadow-sm">
+          <div className="border-b border-emerald-100 px-5 py-3">
+            <h2 className="text-sm font-semibold text-emerald-700">Conclusão de Lote / Operação</h2>
+          </div>
+          <form onSubmit={handleBatchSubmit} className="space-y-3 p-4">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Código do Lote / OS</label>
+              <input value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="Ex: LOTE-2025-001"
+                className="w-full rounded-lg border border-gray-200 bg-white h-9 px-3 text-sm focus:outline-none focus:border-emerald-400" required data-testid="input-batch-code" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Observações</label>
+              <textarea value={batchNotes} onChange={(e) => setBatchNotes(e.target.value)} rows={3}
+                placeholder="Descreva a atividade realizada..."
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" data-testid="input-batch-notes" />
+            </div>
+            <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors">
+              <CheckCircle size={13} /> Confirmar Conclusão
+            </button>
+          </form>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 md:space-y-4">
@@ -106,60 +192,20 @@ export function DocumentView() {
                 </svg>
                 <p className="text-sm font-medium text-gray-400">Visualizador de Documento</p>
                 <p className="text-xs text-gray-300 hidden md:block">{doc.code}_{doc.currentRevision}.{doc.fileType.toLowerCase()} · {doc.pages} páginas</p>
-                <p className="text-[10px] font-mono text-gray-300 hidden md:block">{currentVersion?.filePath}</p>
               </div>
             </div>
           </div>
 
-          {/* Actions — shown here on mobile, in sidebar on desktop */}
+          {/* Actions — mobile */}
           <div className="lg:hidden rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="border-b border-gray-100 px-4 py-3">
               <h2 className="text-sm font-semibold text-gray-700">Ações</h2>
             </div>
-            <div className="grid grid-cols-2 gap-2 p-3">
-              <button className="flex items-center justify-center gap-2 rounded-lg bg-[#FF201A] px-3 py-2.5 text-xs font-semibold text-white hover:bg-[#e01a14] transition-colors border border-[#bf0f0c]" data-testid="button-download-mobile">
-                <Download size={13} /> Baixar
-              </button>
-              <button className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
-                <Edit3 size={13} /> Editar
-              </button>
-              <button
-                onClick={() => setShowBatchForm((v) => !v)}
-                className="col-span-2 flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
-              >
-                <CheckSquare size={13} /> Registrar Conclusão de Lote
-              </button>
-            </div>
+            <ActionsPanel testIdSuffix="-mobile" />
           </div>
 
-          {/* Batch form (mobile) */}
           <div className="lg:hidden">
-            <AnimatePresence>
-              {showBatchForm && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/50 shadow-sm">
-                  <div className="border-b border-emerald-100 px-4 py-3">
-                    <h2 className="text-sm font-semibold text-emerald-700">Conclusão de Lote</h2>
-                  </div>
-                  <form onSubmit={handleBatchSubmit} className="space-y-3 p-4">
-                    <div>
-                      <label className="mb-1 block text-xs font-semibold text-gray-600">Código do Lote / OS</label>
-                      <input value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="Ex: LOTE-2025-001"
-                        className="w-full rounded-lg border border-gray-200 bg-white h-9 px-3 text-sm focus:outline-none focus:border-emerald-400" required />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-semibold text-gray-600">Observações</label>
-                      <textarea value={batchNotes} onChange={(e) => setBatchNotes(e.target.value)} rows={3}
-                        placeholder="Descreva a atividade realizada..."
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
-                    </div>
-                    <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors">
-                      <CheckCircle size={13} /> Confirmar Conclusão
-                    </button>
-                  </form>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <BatchForm />
           </div>
 
           {/* Version History */}
@@ -201,60 +247,16 @@ export function DocumentView() {
           </div>
         </div>
 
-        {/* Right panel — desktop only */}
+        {/* Right panel — desktop */}
         <div className="hidden lg:block space-y-4">
-          {/* Actions */}
           <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="border-b border-gray-100 px-5 py-3">
               <h2 className="text-sm font-semibold text-gray-700">Ações</h2>
             </div>
-            <div className="flex flex-col gap-2 p-4">
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF201A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#e01a14] transition-colors border border-[#bf0f0c]" data-testid="button-download">
-                <Download size={14} /> Baixar Versão Vigente
-              </button>
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-                <Edit3 size={14} /> Editar Metadados
-              </button>
-              <button
-                onClick={() => setShowBatchForm((v) => !v)}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
-                data-testid="button-batch-completion"
-              >
-                <CheckSquare size={14} /> Registrar Conclusão de Lote
-              </button>
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-100 bg-white px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
-                <Trash2 size={14} /> Excluir Documento
-              </button>
-            </div>
+            <ActionsPanel />
           </div>
 
-          {/* Batch form */}
-          <AnimatePresence>
-            {showBatchForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/50 shadow-sm">
-                <div className="border-b border-emerald-100 px-5 py-3">
-                  <h2 className="text-sm font-semibold text-emerald-700">Conclusão de Lote / Operação</h2>
-                </div>
-                <form onSubmit={handleBatchSubmit} className="space-y-3 p-4">
-                  <div>
-                    <label className="mb-1 block text-xs font-semibold text-gray-600">Código do Lote / OS</label>
-                    <input value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="Ex: LOTE-2025-001"
-                      className="w-full rounded-lg border border-gray-200 bg-white h-9 px-3 text-sm focus:outline-none focus:border-emerald-400" required data-testid="input-batch-code" />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-semibold text-gray-600">Observações</label>
-                    <textarea value={batchNotes} onChange={(e) => setBatchNotes(e.target.value)} rows={3}
-                      placeholder="Descreva a atividade realizada..."
-                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" data-testid="input-batch-notes" />
-                  </div>
-                  <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors">
-                    <CheckCircle size={13} /> Confirmar Conclusão
-                  </button>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <BatchForm />
 
           {/* Metadata */}
           <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
@@ -292,7 +294,6 @@ export function DocumentView() {
             </div>
           </div>
 
-          {/* Integrity */}
           <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-3">
               <Shield size={13} className="text-gray-400" />
@@ -316,7 +317,7 @@ export function DocumentView() {
         </div>
       </div>
 
-      {/* Metadata + Integrity — mobile */}
+      {/* Metadata — mobile */}
       <div className="lg:hidden space-y-3">
         <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
           <div className="border-b border-gray-100 px-4 py-3">

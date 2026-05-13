@@ -71,7 +71,7 @@ export function setupAuth(app: Express) {
       if (!user) return res.status(401).json({ message: info?.message || "Credenciais inválidas." });
       req.login(user, (err) => {
         if (err) return next(err);
-        return res.json({ id: user.id, username: user.username });
+        return res.json({ id: user.id, username: user.username, role: user.role });
       });
     })(req, res, next);
   });
@@ -86,6 +86,6 @@ export function setupAuth(app: Express) {
   app.get("/api/me", (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Não autenticado." });
     const user = req.user as User;
-    res.json({ id: user.id, username: user.username });
+    res.json({ id: user.id, username: user.username, role: user.role });
   });
 }

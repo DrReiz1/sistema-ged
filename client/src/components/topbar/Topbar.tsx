@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { LogOut, Menu } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getRole, roleConfig } from "@/lib/roles";
 
 interface TopbarProps {
   onMenuClick?: () => void;
@@ -11,7 +12,7 @@ interface TopbarProps {
 export function Topbar({ onMenuClick }: TopbarProps) {
   const [, navigate] = useLocation();
 
-  const { data: user } = useQuery<{ id: string; username: string } | null>({
+  const { data: user } = useQuery<{ id: string; username: string; role: string } | null>({
     queryKey: ["/api/me"],
     retry: false,
   });
@@ -24,7 +25,9 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     },
   });
 
-  const displayName = user?.username?.split("@")[0] ?? "Marcos";
+  const displayName = user?.username?.split("@")[0] ?? "";
+  const role = getRole(user?.role);
+  const { label: roleLabel, badgeClass } = roleConfig[role];
 
   return (
     <header className="flex h-14 md:h-[72px] flex-shrink-0 items-center justify-between border-b border-black/10 bg-[#dcdcdc] px-3 md:px-6 shadow-[0px_4px_4px_#00000026] z-10">
@@ -52,9 +55,18 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             </svg>
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-gray-800 leading-tight capitalize">{displayName}</p>
-            <p className="text-xs text-gray-500 leading-tight">Supervisor</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-gray-800 leading-tight capitalize">{displayName}</p>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeClass}`}>
+                {roleLabel}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 leading-tight">{user?.username}</p>
           </div>
+          {/* Mobile: role badge only */}
+          <span className={`sm:hidden rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeClass}`}>
+            {roleLabel}
+          </span>
         </div>
 
         <button
