@@ -52,13 +52,13 @@ export function Upload() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-3xl font-bold text-gray-800">Upload de Documento</h1>
+      <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Upload de Documento</h1>
 
       <AnimatePresence>
         {submitted && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-            <CheckCircle size={18} className="text-emerald-600" />
+            className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 md:px-5 md:py-4">
+            <CheckCircle size={18} className="text-emerald-600 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-emerald-700">Documento enviado com sucesso!</p>
               <p className="text-xs text-emerald-600">Revisão {form.revision} em processamento...</p>
@@ -73,19 +73,19 @@ export function Upload() {
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
-          className={`relative flex min-h-[140px] flex-col items-center justify-center rounded-xl border-2 border-dashed transition-colors ${
+          className={`relative flex min-h-[120px] md:min-h-[140px] flex-col items-center justify-center rounded-xl border-2 border-dashed transition-colors ${
             dragging ? "border-[#FF201A] bg-red-50" : "border-gray-300 bg-white hover:border-gray-400"
           }`}
         >
           <input type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.docx" onChange={handleFileInput} className="absolute inset-0 cursor-pointer opacity-0" data-testid="input-file" />
-          <UploadIcon size={28} className={`mb-2 ${dragging ? "text-[#FF201A]" : "text-gray-300"}`} />
-          <p className="text-sm font-medium text-gray-600">Arraste ou clique para selecionar</p>
+          <UploadIcon size={24} className={`mb-2 ${dragging ? "text-[#FF201A]" : "text-gray-300"}`} />
+          <p className="text-sm font-medium text-gray-600">Arraste ou toque para selecionar</p>
           <p className="mt-1 text-xs text-gray-400">{ALLOWED_EXTENSIONS.join(", ")} · Max {MAX_SIZE_MB}MB</p>
         </div>
 
         {fileErrors.map((err, i) => (
           <div key={i} className="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2">
-            <AlertCircle size={13} className="text-red-500" />
+            <AlertCircle size={13} className="text-red-500 flex-shrink-0" />
             <p className="text-xs text-red-600">{err}</p>
           </div>
         ))}
@@ -103,8 +103,8 @@ export function Upload() {
         ))}
 
         {/* Form fields */}
-        <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-4 md:p-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Código do Documento *" value={form.code} onChange={(v) => setField("code", v)} placeholder="Ex: DES-1023" mono testId="input-doc-code" />
             <FormField label="Revisão *" value={form.revision} onChange={(v) => setField("revision", v)} placeholder="REV01" mono testId="input-revision" />
           </div>
@@ -115,13 +115,13 @@ export function Upload() {
               placeholder="Descrição do documento..."
               className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A]" data-testid="input-doc-description" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <SelectField label="Tipo de Documento" value={form.docType} onChange={(v) => setField("docType", v)} testId="select-doc-type"
               options={mockDocumentTypes.map((t) => ({ value: String(t.id), label: t.name }))} placeholder="Selecionar tipo..." />
             <SelectField label="Correspondente" value={form.correspondent} onChange={(v) => setField("correspondent", v)} testId="select-correspondent"
               options={mockCorrespondents.map((c) => ({ value: String(c.id), label: c.name }))} placeholder="Selecionar..." />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <SelectField label="Caminho de Armazenamento" value={form.storagePath} onChange={(v) => setField("storagePath", v)} testId="select-storage-path"
               options={mockStoragePaths.map((p) => ({ value: String(p.id), label: p.path }))} placeholder="Selecionar caminho..." mono />
             <FormField label="Data do Documento" value={form.date} onChange={(v) => setField("date", v)} type="date" testId="input-doc-date" />
@@ -145,20 +145,19 @@ export function Upload() {
             </div>
           </div>
 
-          {/* Nome físico preview */}
           {form.code && form.revision && (
-            <div className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+            <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 md:px-4 py-3">
               <p className="text-[10px] uppercase tracking-wide text-gray-400">Nome físico gerado</p>
-              <p className="mt-1 font-mono text-sm text-gray-700">{form.code.toUpperCase()}_{form.revision.toUpperCase()}_<span className="text-gray-400">[uuid]</span>.pdf</p>
+              <p className="mt-1 font-mono text-xs md:text-sm text-gray-700 break-all">{form.code.toUpperCase()}_{form.revision.toUpperCase()}_<span className="text-gray-400">[uuid]</span>.pdf</p>
             </div>
           )}
         </div>
 
         <div className="flex justify-end">
           <button type="submit" disabled={!files.length}
-            className="flex items-center gap-2 rounded-lg bg-[#FF201A] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#e01a14] transition-colors border border-[#bf0f0c] disabled:opacity-40"
+            className="flex items-center gap-2 rounded-lg bg-[#FF201A] px-5 md:px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#e01a14] transition-colors border border-[#bf0f0c] disabled:opacity-40"
             data-testid="button-submit-upload">
-            <UploadIcon size={14} /> Publicar Revisão {form.revision || "REV01"}
+            <UploadIcon size={14} /> Publicar {form.revision || "REV01"}
           </button>
         </div>
       </form>
@@ -187,7 +186,7 @@ function SelectField({ label, value, onChange, options, placeholder, mono, testI
     <div className="space-y-1.5">
       <label className="text-xs font-semibold text-gray-600">{label}</label>
       <select value={value} onChange={(e) => onChange(e.target.value)}
-        className={`w-full h-9 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A] ${mono ? "font-mono" : ""}`}
+        className={`w-full h-9 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A] ${mono ? "font-mono text-xs" : ""}`}
         data-testid={testId}>
         <option value="">{placeholder}</option>
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}

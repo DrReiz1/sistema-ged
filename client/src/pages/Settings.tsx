@@ -40,10 +40,25 @@ export function Settings() {
   };
   const removeItem = (items: string[], setItems: React.Dispatch<React.SetStateAction<string[]>>, i: number) => setItems(items.filter((_, idx) => idx !== i));
 
+  const activeLabel = sections.find((s) => s.id === activeSection)?.label ?? "";
+
   return (
-    <div className="flex gap-5">
-      {/* Sidebar nav */}
-      <aside className="w-52 flex-shrink-0">
+    <div className="space-y-4 md:space-y-0 md:flex md:gap-5">
+      {/* Mobile: select dropdown */}
+      <div className="md:hidden">
+        <select
+          value={activeSection}
+          onChange={(e) => setActiveSection(e.target.value)}
+          className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm focus:outline-none focus:border-[#FF201A]"
+        >
+          {sections.map(({ id, label }) => (
+            <option key={id} value={id}>{label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Desktop: sidebar nav */}
+      <aside className="hidden md:block w-52 flex-shrink-0">
         <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-2">
           <nav className="space-y-0.5">
             {sections.map(({ id, label, icon: Icon }) => (
@@ -59,17 +74,19 @@ export function Settings() {
       </aside>
 
       {/* Content */}
-      <motion.div key={activeSection} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.15 }} className="flex-1">
+      <motion.div key={activeSection} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.15 }} className="flex-1 min-w-0">
         {activeSection === "geral" && (
           <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="border-b border-gray-100 px-5 py-4"><h2 className="text-sm font-semibold text-gray-700">Configurações Gerais</h2></div>
-            <div className="space-y-4 p-5">
+            <div className="space-y-4 p-4 md:p-5">
               <FieldRow label="Nome da Organização" defaultValue="TSEA Energia" testId="input-org-name" />
               <FieldRow label="Nome do Sistema" defaultValue="DocStation — TSEA GED" />
               <FieldRow label="Idioma" defaultValue="Português (Brasil)" />
               <FieldRow label="Fuso Horário" defaultValue="America/Sao_Paulo (UTC-3)" />
-              <FieldRow label="Limite de Upload (MB)" defaultValue="50" type="number" />
-              <FieldRow label="Expiração de Sessão (horas)" defaultValue="8" type="number" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FieldRow label="Limite de Upload (MB)" defaultValue="50" type="number" />
+                <FieldRow label="Expiração de Sessão (horas)" defaultValue="8" type="number" />
+              </div>
               <div className="flex justify-end pt-2">
                 <button className="flex items-center gap-2 rounded-lg bg-[#FF201A] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#e01a14] transition-colors border border-[#bf0f0c]" data-testid="button-save-settings">
                   <Save size={13} /> Salvar Alterações
@@ -106,7 +123,7 @@ export function Settings() {
         {activeSection === "tags" && (
           <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="border-b border-gray-100 px-5 py-4"><h2 className="text-sm font-semibold text-gray-700">Gerenciar Etiquetas</h2></div>
-            <div className="space-y-4 p-5">
+            <div className="space-y-4 p-4 md:p-5">
               <div className="flex gap-2">
                 <input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Nova etiqueta..."
                   onKeyDown={(e) => { if (e.key === "Enter") addItem(tags, setTags, newTag, setNewTag); }}
@@ -150,7 +167,7 @@ function ListEditor({ title, icon, items, newValue, setNewValue, onAdd, onRemove
   return (
     <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
       <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-4">{icon}<h2 className="text-sm font-semibold text-gray-700">{title}</h2></div>
-      <div className="space-y-3 p-5">
+      <div className="space-y-3 p-4 md:p-5">
         <div className="flex gap-2">
           <input value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder={placeholder}
             onKeyDown={(e) => { if (e.key === "Enter") onAdd(); }}
@@ -161,9 +178,9 @@ function ListEditor({ title, icon, items, newValue, setNewValue, onAdd, onRemove
         </div>
         <div className="space-y-1.5">
           {items.map((item, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/60 px-4 py-2.5">
-              <span className={`text-sm text-gray-700 ${mono ? "font-mono" : ""}`}>{item}</span>
-              <button onClick={() => onRemove(i)} className="text-gray-300 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
+            <div key={i} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/60 px-3 md:px-4 py-2.5">
+              <span className={`text-sm text-gray-700 truncate mr-2 ${mono ? "font-mono text-xs" : ""}`}>{item}</span>
+              <button onClick={() => onRemove(i)} className="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
             </div>
           ))}
         </div>
