@@ -1,16 +1,17 @@
 import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard, FileText, Upload, History, Users, Settings, ChevronLeft, ChevronRight,
+  LayoutDashboard, FileText, Upload, History, Users, Settings,
+  Tag, Folder, User, AlignLeft, ChevronRight, ChevronLeft, Sliders
 } from "lucide-react";
 
 const navItems = [
-  { href: "/dashboard", label: "Início", icon: LayoutDashboard },
-  { href: "/documents", label: "Documentos", icon: FileText },
-  { href: "/upload", label: "Upload", icon: Upload },
-  { href: "/history", label: "Histórico", icon: History },
-  { href: "/groups", label: "Grupos e Usuários", icon: Users },
-  { href: "/settings", label: "Configurações", icon: Settings },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Início" },
+  { href: "/documents", icon: FileText, label: "Documentos" },
+  { href: "/upload", icon: Upload, label: "Upload" },
+  { href: "/history", icon: History, label: "Histórico" },
+  { href: "/groups", icon: Users, label: "Grupos e Usuários" },
+  { href: "/settings", icon: Settings, label: "Configurações" },
 ];
 
 interface SidebarProps {
@@ -23,78 +24,70 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 64 : 240 }}
+      animate={{ width: collapsed ? 64 : 220 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
-      className="relative flex h-screen flex-shrink-0 flex-col bg-[#1c1f2e] shadow-xl"
+      className="relative flex h-screen flex-shrink-0 flex-col bg-[#FF201A] shadow-lg z-20"
     >
-      {/* Header / Logo */}
-      <div className="flex h-[72px] items-center justify-between border-b border-white/10 px-4">
-        {!collapsed ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15 }} className="flex items-center gap-2">
-            <img src="/figmaAssets/download--1--1.png" alt="TSEA" className="h-8 w-auto object-contain brightness-0 invert" />
-          </motion.div>
-        ) : (
-          <div className="mx-auto">
-            <img src="/figmaAssets/download--1--1.png" alt="TSEA" className="h-6 w-6 object-contain brightness-0 invert" />
-          </div>
-        )}
-        {!collapsed && (
-          <button onClick={onToggle} className="flex h-6 w-6 items-center justify-center rounded text-white/40 transition hover:text-white" data-testid="button-sidebar-collapse">
-            <ChevronLeft size={16} />
-          </button>
-        )}
-      </div>
+      {/* Toggle button */}
+      <button
+        onClick={onToggle}
+        data-testid="button-sidebar-toggle"
+        className="absolute -right-3 top-4 z-30 flex h-6 w-6 items-center justify-center rounded-sm bg-[#1c1f2e] text-white shadow-md hover:bg-[#2a2f45] transition-colors"
+      >
+        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+      </button>
 
-      {/* Expand button when collapsed */}
-      {collapsed && (
-        <button onClick={onToggle} className="absolute -right-3 top-[84px] z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-[#1c1f2e] text-white/60 shadow-md transition hover:text-white" data-testid="button-sidebar-expand">
-          <ChevronRight size={12} />
-        </button>
-      )}
-
-      {/* Navigation */}
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-2 py-4">
-        {!collapsed && (
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-white/30">Menu</p>
-        )}
-        {navItems.map(({ href, label, icon: Icon }) => {
+      {/* Navigation icons */}
+      <nav className="flex flex-1 flex-col items-center gap-1 pt-4 pb-4">
+        {navItems.map(({ href, icon: Icon, label }) => {
           const isActive = location === href || (href !== "/dashboard" && location.startsWith(href));
           return (
             <Link key={href} href={href}>
-              <motion.div
-                whileHover={{ x: collapsed ? 0 : 2 }}
-                transition={{ duration: 0.1 }}
+              <div
                 data-testid={`nav-${label.toLowerCase().replace(/\s+/g, "-")}`}
                 title={collapsed ? label : undefined}
-                className={`group flex cursor-pointer items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-all ${
-                  isActive ? "bg-[#FF201A]/20 text-[#FF5955]" : "text-white/60 hover:bg-white/5 hover:text-white"
-                } ${collapsed ? "justify-center px-2" : "px-3"}`}
+                className={`group relative flex cursor-pointer items-center gap-3 rounded-lg transition-all duration-150 ${
+                  collapsed ? "w-10 h-10 justify-center" : "w-[188px] h-10 px-3"
+                } ${isActive ? "bg-white/20" : "hover:bg-white/15"}`}
               >
-                <Icon size={18} className={`flex-shrink-0 transition-colors ${isActive ? "text-[#FF5955]" : "text-white/50 group-hover:text-white"}`} />
+                <Icon
+                  size={20}
+                  className={`flex-shrink-0 transition-colors ${isActive ? "text-white" : "text-white/80 group-hover:text-white"}`}
+                />
                 {!collapsed && (
-                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15 }}>
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15 }}
+                    className={`text-sm font-medium whitespace-nowrap ${isActive ? "text-white" : "text-white/80 group-hover:text-white"}`}
+                  >
                     {label}
                   </motion.span>
                 )}
-                {isActive && !collapsed && (
-                  <motion.div layoutId="activeIndicator" className="ml-auto h-1.5 w-1.5 rounded-full bg-[#FF201A]" />
+                {isActive && (
+                  <motion.div
+                    layoutId="activeBar"
+                    className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-white"
+                  />
                 )}
-              </motion.div>
+              </div>
             </Link>
           );
         })}
       </nav>
 
-      {/* Profile footer */}
-      <div className="border-t border-white/10 px-2 py-3">
+      {/* Profile at bottom */}
+      <div className="pb-4 flex justify-center">
         <Link href="/profile">
-          <div className={`flex cursor-pointer items-center gap-3 rounded-lg py-2.5 transition hover:bg-white/5 ${collapsed ? "justify-center px-2" : "px-3"}`} data-testid="nav-profile">
-            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#FF201A] text-[11px] font-bold text-white">AD</div>
+          <div
+            className={`flex cursor-pointer items-center gap-3 rounded-lg transition hover:bg-white/15 ${
+              collapsed ? "w-10 h-10 justify-center" : "w-[188px] h-10 px-3"
+            }`}
+            data-testid="nav-profile"
+          >
+            <User size={20} className="flex-shrink-0 text-white/80" />
             {!collapsed && (
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-white/80">Admin TSEA</p>
-                <p className="truncate text-[10px] text-white/40">Administrador</p>
-              </div>
+              <span className="text-sm font-medium text-white/80 whitespace-nowrap">Perfil</span>
             )}
           </div>
         </Link>

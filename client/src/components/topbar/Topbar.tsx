@@ -1,35 +1,16 @@
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Search, Bell, LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-const pageTitles: Record<string, string> = {
-  "/dashboard": "Início",
-  "/documents": "Documentos",
-  "/upload": "Upload de Documento",
-  "/history": "Histórico",
-  "/groups": "Grupos e Usuários",
-  "/settings": "Configurações",
-  "/profile": "Perfil do Usuário",
-};
 
 export function Topbar() {
-  const [location, navigate] = useLocation();
-  const [searchValue, setSearchValue] = useState("");
+  const [, navigate] = useLocation();
 
-  const pageTitle = Object.entries(pageTitles).find(([key]) =>
-    location.startsWith(key)
-  )?.[1] ?? "TSEA GED";
+  const { data: user } = useQuery<{ id: string; username: string } | null>({
+    queryKey: ["/api/me"],
+    retry: false,
+  });
 
   const logoutMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/logout"),
@@ -39,61 +20,38 @@ export function Topbar() {
     },
   });
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchValue.trim()) navigate("/documents?q=" + encodeURIComponent(searchValue));
-  };
+  const displayName = user?.username?.split("@")[0] ?? "Marcos";
 
   return (
-    <header className="flex h-[72px] flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 shadow-sm">
-      <div>
-        <h1 className="text-lg font-semibold text-gray-800">{pageTitle}</h1>
-        <p className="text-xs text-gray-400">Sistema de Gerenciamento de Documentos Técnicos</p>
+    <header className="flex h-[72px] flex-shrink-0 items-center justify-between border-b border-black/10 bg-[#dcdcdc] px-6 shadow-[0px_4px_4px_#00000026] z-10">
+      {/* Logo */}
+      <div className="flex items-center gap-1">
+        <img src="/figmaAssets/download--1--1.png" alt="TSEA" className="h-10 w-auto object-contain" />
+        <img src="/figmaAssets/download-2.png" alt="GED" className="h-7 w-auto object-contain" />
+        <img src="/figmaAssets/chatgpt-image-1-de-mai--de-2026--12-21-43-1.png" alt="GED" className="h-5 w-auto object-contain" />
       </div>
 
+      {/* Right: avatar + name + sair */}
       <div className="flex items-center gap-3">
-        <form onSubmit={handleSearch} className="relative">
-          <Search
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <Input
-            data-testid="input-global-search"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Pesquisar documentos..."
-            className="h-9 w-72 rounded-lg border-gray-200 bg-gray-50 pl-9 text-sm focus-visible:ring-1 focus-visible:ring-[#FF201A]/30"
-          />
-        </form>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-500 overflow-hidden">
+            <svg viewBox="0 0 24 24" fill="white" className="h-8 w-8 mt-1">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-800 leading-tight capitalize">{displayName}</p>
+            <p className="text-xs text-gray-500 leading-tight">Supervisor</p>
+          </div>
+        </div>
 
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100" data-testid="button-notifications">
-          <Bell size={18} />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#FF201A]" />
+        <button
+          onClick={() => logoutMutation.mutate()}
+          data-testid="button-logout"
+          className="flex items-center gap-1.5 rounded px-4 py-2 bg-[#FF201A] text-white text-sm font-semibold hover:bg-[#e01a14] transition-colors border border-[#bf0f0c]"
+        >
+          Sair <LogOut size={15} />
         </button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF201A] text-sm font-bold text-white transition hover:bg-[#e01a14]"
-              data-testid="button-user-menu"
-            >
-              AD
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={() => navigate("/profile")} className="gap-2 text-sm">
-              <User size={14} /> Meu Perfil
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => logoutMutation.mutate()}
-              className="gap-2 text-sm text-red-600 focus:text-red-600"
-              data-testid="button-logout"
-            >
-              <LogOut size={14} /> Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </header>
   );
