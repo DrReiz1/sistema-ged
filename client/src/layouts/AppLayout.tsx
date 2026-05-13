@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { Topbar } from "@/components/topbar/Topbar";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -38,7 +39,16 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#dbd8d3]">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+      <div className="relative flex-shrink-0">
+        <Sidebar collapsed={collapsed} />
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          data-testid="button-sidebar-toggle"
+          className="absolute -right-3 top-4 z-30 flex h-6 w-6 items-center justify-center rounded-sm bg-[#1c1f2e] text-white shadow-md hover:bg-[#2a2f45] transition-colors"
+        >
+          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        </button>
+      </div>
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>

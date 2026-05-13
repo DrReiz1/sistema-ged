@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Home, User, Tag, Folder, FileText,
-  Settings, SlidersHorizontal, Users, AlignLeft, ChevronRight, ChevronLeft
+  Settings, SlidersHorizontal, Users, AlignLeft
 } from "lucide-react";
 
 const navItems = [
@@ -20,10 +20,9 @@ const navItems = [
 
 interface SidebarProps {
   collapsed: boolean;
-  onToggle: () => void;
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed }: SidebarProps) {
   const [location] = useLocation();
 
   const isActive = (href: string) =>
@@ -33,17 +32,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     <motion.aside
       animate={{ width: collapsed ? 64 : 224 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
-      className="relative flex h-screen flex-shrink-0 flex-col bg-[#FF201A] shadow-lg z-20 overflow-hidden"
+      className="flex h-screen flex-shrink-0 flex-col bg-[#FF201A] shadow-lg z-20 overflow-hidden"
     >
-      {/* Toggle button */}
-      <button
-        onClick={onToggle}
-        data-testid="button-sidebar-toggle"
-        className="absolute -right-3 top-4 z-30 flex h-6 w-6 items-center justify-center rounded-sm bg-[#1c1f2e] text-white shadow-md hover:bg-[#2a2f45] transition-colors"
-      >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-      </button>
-
       {/* Navigation */}
       <nav className="flex flex-1 flex-col items-center gap-0.5 pt-4 pb-4 overflow-y-auto overflow-x-hidden">
         {navItems.map(({ href, icon: Icon, label }) => {
