@@ -24,11 +24,10 @@ export function Topbar() {
 
   return (
     <header className="flex h-[72px] flex-shrink-0 items-center justify-between border-b border-black/10 bg-[#dcdcdc] px-6 shadow-[0px_4px_4px_#00000026] z-10">
-      {/* Logo */}
-      <div className="flex items-center gap-1">
-        <img src="/figmaAssets/download--1--1.png" alt="TSEA" className="h-10 w-auto object-contain" />
-        <img src="/figmaAssets/download-2.png" alt="GED" className="h-7 w-auto object-contain" />
-        <img src="/figmaAssets/chatgpt-image-1-de-mai--de-2026--12-21-43-1.png" alt="GED" className="h-5 w-auto object-contain" />
+      {/* Logo — TSEA GED only */}
+      <div className="flex items-end gap-0.5">
+        <img src="/figmaAssets/download-2.png" alt="TSEA GED" className="h-8 w-auto object-contain" />
+        <img src="/figmaAssets/chatgpt-image-1-de-mai--de-2026--12-21-43-1.png" alt="GED" className="h-5 w-auto object-contain mb-[2px]" />
       </div>
 
       {/* Right: avatar + name + sair */}
