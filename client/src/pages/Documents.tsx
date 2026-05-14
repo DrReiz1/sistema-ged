@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Download, Eye, FileText, ChevronDown, X } from "lucide-react";
+import { Search, Download, Eye, FileText, ChevronDown, X, List, Grid, GitBranch } from "lucide-react";
 import { Link } from "wouter";
 import { mockDocuments, mockDocumentTypes, mockTags } from "@/mock/data";
 
@@ -15,6 +15,8 @@ const statusLabel: Record<string, string> = {
   processando: "Processando",
   erro: "Erro",
 };
+
+type ViewMode = "list" | "grid";
 
 function SimpleSelect({ label, options, value, onChange }: {
   label: string;
@@ -73,6 +75,7 @@ function SimpleSelect({ label, options, value, onChange }: {
 
 export function Documents() {
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -111,24 +114,46 @@ export function Documents() {
 
       {/* Search + Filters */}
       <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-4">
-        {/* Search bar */}
-        <div className="relative">
-          <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            data-testid="input-doc-search"
-            placeholder="Buscar por título, código ou etiqueta..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-11 pl-11 pr-4 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A] focus:ring-1 focus:ring-[#FF201A]/20 transition-all"
-          />
-          {search && (
+        <div className="flex items-center gap-2">
+          {/* Search bar */}
+          <div className="relative flex-1">
+            <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              data-testid="input-doc-search"
+              placeholder="Buscar por título, código ou etiqueta..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-11 pl-11 pr-4 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A] focus:ring-1 focus:ring-[#FF201A]/20 transition-all"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+
+          {/* View toggle */}
+          <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden flex-shrink-0">
             <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              data-testid="button-view-list"
+              onClick={() => setViewMode("list")}
+              title="Visualização em lista"
+              className={`flex h-11 w-11 items-center justify-center transition-colors ${viewMode === "list" ? "bg-[#FF201A] text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
             >
-              <X size={15} />
+              <List size={17} />
             </button>
-          )}
+            <button
+              data-testid="button-view-grid"
+              onClick={() => setViewMode("grid")}
+              title="Visualização em grade"
+              className={`flex h-11 w-11 items-center justify-center transition-colors ${viewMode === "grid" ? "bg-[#FF201A] text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+            >
+              <Grid size={17} />
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -173,8 +198,8 @@ export function Documents() {
         </div>
       </div>
 
-      {/* Document list */}
-      {filtered.length === 0 ? (
+      {/* Empty state */}
+      {filtered.length === 0 && (
         <div className="rounded-xl bg-white border border-gray-200 shadow-sm py-20 flex flex-col items-center gap-3 text-gray-400">
           <FileText size={40} strokeWidth={1.2} />
           <p className="text-base font-medium">Nenhum documento encontrado</p>
@@ -188,9 +213,65 @@ export function Documents() {
             </button>
           )}
         </div>
-      ) : (
+      )}
+
+      {/* Grid view */}
+      {filtered.length > 0 && viewMode === "grid" && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {filtered.map((doc, i) => {
+            const type = mockDocumentTypes.find((t) => t.id === doc.typeId);
+            return (
+              <motion.div key={doc.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                <Link href={`/documents/${doc.id}`}>
+                  <div
+                    className="group cursor-pointer rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-gray-300 transition-all"
+                    data-testid={`card-doc-${doc.id}`}
+                  >
+                    <div className="relative flex h-32 md:h-44 items-center justify-center bg-gray-100">
+                      <div className={`flex h-full w-full items-center justify-center ${doc.status === "erro" ? "bg-gray-200" : "bg-gray-100"}`}>
+                        <svg viewBox="0 0 80 100" className="h-20 w-16 md:h-28 md:w-20 opacity-20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="5" y="5" width="70" height="90" rx="4" fill="#888" />
+                          <rect x="14" y="20" width="52" height="4" rx="2" fill="white" opacity="0.6" />
+                          <rect x="14" y="30" width="52" height="4" rx="2" fill="white" opacity="0.6" />
+                          <rect x="14" y="40" width="40" height="4" rx="2" fill="white" opacity="0.6" />
+                          <rect x="14" y="55" width="52" height="20" rx="2" fill="white" opacity="0.2" />
+                        </svg>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-gradient-to-t from-black/40 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="flex h-7 w-7 items-center justify-center rounded-md bg-white/90 text-gray-700 hover:bg-white shadow-sm">
+                          <Eye size={13} />
+                        </button>
+                        <button className="flex h-7 w-7 items-center justify-center rounded-md bg-white/90 text-gray-700 hover:bg-white shadow-sm">
+                          <Download size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-2 md:p-3">
+                      <div className="flex items-center gap-1 mb-1">
+                        <span className="text-[10px] font-bold text-gray-400">{doc.code}</span>
+                        <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">{doc.currentRevision}</span>
+                      </div>
+                      <p className="text-xs font-semibold text-gray-700 line-clamp-2 leading-tight">{doc.title}</p>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${statusColor[doc.status]}`}>
+                          {statusLabel[doc.status] ?? doc.status}
+                        </span>
+                        <div className="hidden md:flex items-center gap-0.5 text-[10px] text-gray-400">
+                          <GitBranch size={10} /> {doc.versions.length}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* List view */}
+      {filtered.length > 0 && viewMode === "list" && (
         <div className="rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden">
-          {/* Table header */}
           <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 border-b border-gray-100 bg-gray-50/70 px-5 py-3">
             <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Documento</span>
             <span className="hidden md:block text-xs font-semibold uppercase tracking-wide text-gray-400">Categoria</span>
@@ -210,7 +291,6 @@ export function Documents() {
                   data-testid={`row-doc-${doc.id}`}
                   className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-gray-50/60 transition-colors"
                 >
-                  {/* Title + code */}
                   <Link href={`/documents/${doc.id}`}>
                     <div className="flex items-center gap-3 cursor-pointer min-w-0">
                       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-red-50">
@@ -228,17 +308,14 @@ export function Documents() {
                     </div>
                   </Link>
 
-                  {/* Category */}
                   <span className="hidden md:block text-sm text-gray-500 whitespace-nowrap">
                     {type?.name ?? "-"}
                   </span>
 
-                  {/* Status */}
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap ${statusColor[doc.status]}`}>
                     {statusLabel[doc.status] ?? doc.status}
                   </span>
 
-                  {/* Actions */}
                   <div className="flex items-center gap-1">
                     <Link href={`/documents/${doc.id}`}>
                       <button

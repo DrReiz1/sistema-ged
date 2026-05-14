@@ -30,7 +30,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const { label: roleLabel, badgeClass } = roleConfig[role];
 
   return (
-    <header className="flex h-14 md:h-[72px] flex-shrink-0 items-center justify-between border-b border-black/10 bg-[#dcdcdc] px-3 md:px-6 shadow-[0px_4px_4px_#00000026] z-10">
+    <header className="flex h-14 md:h-[72px] flex-shrink-0 items-center justify-between border-b border-black/10 bg-white px-3 md:px-6 shadow-[0px_4px_4px_#00000026] z-10">
       <div className="flex items-center gap-3">
         {onMenuClick && (
           <button

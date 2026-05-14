@@ -48,10 +48,9 @@ export const Desktop = (): JSX.Element => {
 
   return (
     <main className="min-h-screen w-full overflow-x-auto bg-[#dbd8d3]">
-      <header className="border-b border-black/10 bg-[#dcdcdc] shadow-[0px_4px_4px_#00000026]">
-        <div className="flex min-h-[101px] items-end gap-1 px-[28px] py-5">
-          <img className="h-auto w-[182px] object-contain" alt="TSEA GED" src="/figmaAssets/download-2.png" />
-          <img className="mb-[4px] h-auto w-[70px] object-contain" alt="GED" src="/figmaAssets/chatgpt-image-1-de-mai--de-2026--12-21-43-1.png" />
+      <header className="border-b border-black/10 bg-white shadow-[0px_4px_4px_#00000026]">
+        <div className="flex min-h-[101px] items-center px-[28px] py-5">
+          <img className="h-auto w-[200px] object-contain" alt="TSEA Energia" src="/figmaAssets/download--1--1.png" />
         </div>
       </header>
       <section className="mx-auto flex min-h-[calc(100vh-101px)] w-full max-w-[1440px] items-start justify-center px-6 py-7 md:py-7">
