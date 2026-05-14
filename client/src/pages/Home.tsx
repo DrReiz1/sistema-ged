@@ -180,11 +180,11 @@ export function Home() {
             </Link>
           )}
 
-          {/* Conclusões de Lote */}
+          {/* Atividade Recente */}
           <div className="rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden">
             <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
               <CheckSquare size={14} className="text-emerald-500" />
-              <h2 className="text-sm font-semibold text-gray-700">Conclusões de Lote</h2>
+              <h2 className="text-sm font-semibold text-gray-700">Atividade Recente</h2>
             </div>
             <div className="divide-y divide-gray-50">
               {mockBatchCompletions.map((bc) => (
