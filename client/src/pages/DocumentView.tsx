@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Download, Trash2, Tag, User, Calendar, FileText, Edit3, Hash, GitBranch, CheckCircle, Shield, HardDrive, CheckSquare, Star, Upload } from "lucide-react";
+import { ArrowLeft, Download, Trash2, Tag, User, Calendar, FileText, Edit3, Hash, GitBranch, CheckCircle, Shield, HardDrive, CheckSquare, Upload } from "lucide-react";
 import { mockDocuments, mockDocumentTypes, mockCorrespondents, mockStoragePaths } from "@/mock/data";
 import { getRole, roleConfig } from "@/lib/roles";
 
@@ -171,7 +171,6 @@ export function DocumentView() {
                     <span className="text-xs font-bold text-gray-400">{doc.code}</span>
                     <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] md:text-[11px] font-bold text-blue-700">{doc.currentRevision} — VIGENTE</span>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] md:text-[11px] font-semibold capitalize ${statusColor[doc.status]}`}>{doc.status}</span>
-                    {doc.isFavorite && <Star size={11} className="text-amber-400 fill-amber-400" />}
                   </div>
                   <h1 className="mt-1 text-sm md:text-base font-semibold text-gray-800 truncate">{doc.title}</h1>
                   <p className="mt-0.5 text-[10px] md:text-xs text-gray-400">{doc.fileType} · {currentVersion?.size} · {doc.pages} pág.</p>

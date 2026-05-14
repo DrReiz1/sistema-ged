@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Download, Eye, List, Grid, Star, GitBranch, ChevronDown, X, SlidersHorizontal } from "lucide-react";
+import { Search, Download, Eye, List, Grid, GitBranch, ChevronDown, X, SlidersHorizontal } from "lucide-react";
 import { Link } from "wouter";
 import { mockDocuments, mockDocumentTypes, mockCorrespondents, mockStoragePaths, mockTags } from "@/mock/data";
 
@@ -174,11 +174,7 @@ export function Documents() {
                           <rect x="14" y="55" width="52" height="20" rx="2" fill="white" opacity="0.2" />
                         </svg>
                       </div>
-                      {doc.isFavorite && (
-                        <div className="absolute top-2 right-2">
-                          <Star size={12} className="text-amber-400 fill-amber-400" />
-                        </div>
-                      )}
+
                       <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-gradient-to-t from-black/40 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button className="flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-md bg-white/90 text-gray-700 hover:bg-white shadow-sm">
                           <Eye size={12} />
@@ -240,7 +236,6 @@ export function Documents() {
                             <div>
                               <div className="flex items-center gap-1.5">
                                 <span className="text-[10px] font-bold text-gray-400">{doc.code}</span>
-                                {doc.isFavorite && <Star size={10} className="text-amber-400 fill-amber-400" />}
                               </div>
                               <p className="text-xs md:text-sm font-medium text-gray-700 hover:text-[#FF201A] max-w-[140px] md:max-w-[200px] truncate">{doc.title}</p>
                             </div>
