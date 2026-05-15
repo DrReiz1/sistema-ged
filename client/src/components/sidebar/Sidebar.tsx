@@ -1,23 +1,21 @@
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
-  LayoutDashboard, FileText, Upload, User, Tag, Folder,
+  LayoutDashboard, FileText, Upload, Tag,
   Settings, Palette, Users, ClipboardList, X, BookOpen
 } from "lucide-react";
 import { type UserRole, roleConfig } from "@/lib/roles";
 
 const allNavItems = [
-  { href: "/dashboard",      icon: LayoutDashboard, label: "Início" },
-  { href: "/documents",      icon: FileText,        label: "Documentos" },
-  { href: "/upload",         icon: Upload,          label: "Publicar Documento" },
-  { href: "/correspondents", icon: User,            label: "Correspondentes" },
-  { href: "/tags",           icon: Tag,             label: "Etiquetas" },
-  { href: "/storage-paths",  icon: Folder,          label: "Pastas" },
-  { href: "/doc-types",      icon: BookOpen,        label: "Categorias" },
-  { href: "/history",        icon: ClipboardList,   label: "Histórico" },
-  { href: "/settings",       icon: Settings,        label: "Configurações" },
-  { href: "/groups",         icon: Users,           label: "Usuários" },
-  { href: "/customize",      icon: Palette,         label: "Aparência" },
+  { href: "/dashboard",  icon: LayoutDashboard, label: "Início" },
+  { href: "/documents",  icon: FileText,        label: "Documentos" },
+  { href: "/upload",     icon: Upload,          label: "Publicar Documento" },
+  { href: "/tags",       icon: Tag,             label: "Etiquetas" },
+  { href: "/doc-types",  icon: BookOpen,        label: "Categorias" },
+  { href: "/history",    icon: ClipboardList,   label: "Histórico" },
+  { href: "/settings",   icon: Settings,        label: "Configurações" },
+  { href: "/groups",     icon: Users,           label: "Usuários" },
+  { href: "/customize",  icon: Palette,         label: "Aparência" },
 ];
 
 interface SidebarProps {
@@ -58,7 +56,7 @@ export function Sidebar({ collapsed, role, isMobile = false, onClose }: SidebarP
                 <div
                   onClick={onClose}
                   data-testid={`nav-${href.replace("/", "")}`}
-                  className={`group relative flex cursor-pointer items-center gap-3 rounded-xl px-4 h-13 py-3.5 transition-all duration-150 ${
+                  className={`group relative flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 transition-all duration-150 ${
                     active ? "bg-white/25" : "hover:bg-white/15"
                   }`}
                 >
@@ -68,10 +66,7 @@ export function Sidebar({ collapsed, role, isMobile = false, onClose }: SidebarP
                       className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-white"
                     />
                   )}
-                  <Icon
-                    size={21}
-                    className={`flex-shrink-0 ${active ? "text-white" : "text-white/75 group-hover:text-white"}`}
-                  />
+                  <Icon size={21} className={`flex-shrink-0 ${active ? "text-white" : "text-white/75 group-hover:text-white"}`} />
                   <span className={`text-sm font-medium whitespace-nowrap ${active ? "text-white" : "text-white/80 group-hover:text-white"}`}>
                     {label}
                   </span>
@@ -108,20 +103,13 @@ export function Sidebar({ collapsed, role, isMobile = false, onClose }: SidebarP
                     className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-white"
                   />
                 )}
-                <Icon
-                  size={20}
-                  className={`flex-shrink-0 transition-colors ${
-                    active ? "text-white" : "text-white/75 group-hover:text-white"
-                  }`}
-                />
+                <Icon size={20} className={`flex-shrink-0 transition-colors ${active ? "text-white" : "text-white/75 group-hover:text-white"}`} />
                 {showLabel && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.12 }}
-                    className={`text-sm font-medium whitespace-nowrap leading-tight ${
-                      active ? "text-white" : "text-white/80 group-hover:text-white"
-                    }`}
+                    className={`text-sm font-medium whitespace-nowrap leading-tight ${active ? "text-white" : "text-white/80 group-hover:text-white"}`}
                   >
                     {label}
                   </motion.span>

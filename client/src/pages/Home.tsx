@@ -1,21 +1,28 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, FileText, CheckSquare, ChevronRight, Upload, Clock } from "lucide-react";
+import { Search, FileText, ChevronRight, Upload, Clock, CreditCard } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { mockDocuments, mockDocumentTypes, mockBatchCompletions, dashboardStats } from "@/mock/data";
+import { mockDocuments, mockDocumentTypes, mockActivityLogs, dashboardStats } from "@/mock/data";
 import { getRole, roleConfig } from "@/lib/roles";
 
 const statusColor: Record<string, string> = {
-  indexado: "bg-emerald-100 text-emerald-700",
+  indexado:    "bg-emerald-100 text-emerald-700",
   processando: "bg-amber-100 text-amber-700",
-  erro: "bg-red-100 text-red-600",
+  erro:        "bg-red-100 text-red-600",
 };
 
 const statusLabel: Record<string, string> = {
-  indexado: "Indexado",
+  indexado:    "Indexado",
   processando: "Processando",
-  erro: "Erro",
+  erro:        "Erro",
+};
+
+const actionColor: Record<string, string> = {
+  "Visualizou":          "bg-sky-100 text-sky-700",
+  "Baixou":              "bg-emerald-100 text-emerald-700",
+  "Publicou":            "bg-purple-100 text-purple-700",
+  "Registrou conclusão": "bg-amber-100 text-amber-700",
 };
 
 export function Home() {
@@ -29,7 +36,7 @@ export function Home() {
   const role = getRole(user?.role);
   const perms = roleConfig[role];
 
-  const recent = mockDocuments.slice(0, 8);
+  const recent = mockDocuments.slice(0, 6);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,82 +51,58 @@ export function Home() {
         <p className="text-sm text-gray-500 mt-1">Bem-vindo ao sistema de gestão de documentos da TSEA</p>
       </div>
 
-      {/* Search hero */}
-      <motion.div
-        initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl bg-white border border-gray-200 shadow-sm p-5 md:p-6"
-      >
+      {/* Search */}
+      <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+        className="rounded-xl bg-white border border-gray-200 shadow-sm p-5">
         <p className="text-sm font-semibold text-gray-600 mb-3">Busca Rápida</p>
         <form onSubmit={handleSearch} className="flex gap-3">
           <div className="relative flex-1">
-            <Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              data-testid="input-home-search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input data-testid="input-home-search" value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por código, título ou etiqueta..."
-              className="w-full h-11 pl-10 pr-4 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A] focus:ring-1 focus:ring-[#FF201A]/20 transition-all"
-            />
+              className="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A] focus:ring-1 focus:ring-[#FF201A]/20 transition-all" />
           </div>
-          <button
-            type="submit"
-            data-testid="button-home-search"
-            className="h-11 px-6 rounded-lg bg-[#FF201A] text-white text-sm font-semibold hover:bg-[#e01a14] transition-colors border border-[#bf0f0c] whitespace-nowrap"
-          >
+          <button type="submit" data-testid="button-home-search"
+            className="h-12 px-6 rounded-lg bg-[#FF201A] text-white text-sm font-semibold hover:bg-[#e01a14] transition-colors border border-[#bf0f0c] whitespace-nowrap">
             Buscar
           </button>
         </form>
         <div className="flex flex-wrap gap-2 mt-3">
-          {["Desenho Técnico", "Procedimento", "NR-10", "Manutenção", "Preventiva"].map((tag) => (
-            <button
-              key={tag}
-              onClick={() => navigate(`/documents?q=${tag}`)}
-              className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600 hover:bg-[#FF201A]/10 hover:text-[#FF201A] transition-colors"
-            >
+          {["Desenho Técnico", "NR-10", "Manutenção", "Preventiva", "Subestação"].map((tag) => (
+            <button key={tag} onClick={() => navigate(`/documents?q=${tag}`)}
+              className="rounded-full bg-gray-100 px-3 py-1.5 text-xs text-gray-600 hover:bg-[#FF201A]/10 hover:text-[#FF201A] transition-colors">
               {tag}
             </button>
           ))}
         </div>
       </motion.div>
 
-      {/* Stats row */}
+      {/* Stats */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 sm:grid-cols-4">
         {[
           { label: "Total de Documentos", value: dashboardStats.totalDocuments, color: "bg-[#FF201A]" },
-          { label: "Adicionados este Mês", value: dashboardStats.thisMonth, color: "bg-blue-500" },
-          { label: "Em Processamento", value: dashboardStats.processing, color: "bg-amber-500" },
-          { label: "Usuários Ativos", value: dashboardStats.activeUsers, color: "bg-emerald-500" },
+          { label: "Adicionados este Mês", value: dashboardStats.thisMonth,      color: "bg-blue-500" },
+          { label: "Em Processamento",     value: dashboardStats.processing,     color: "bg-amber-500" },
+          { label: "Usuários Ativos",       value: dashboardStats.activeUsers,    color: "bg-emerald-500" },
         ].map((s, i) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.07 }}
-            className="rounded-xl bg-white border border-gray-200 shadow-sm p-4 md:p-5 flex items-center gap-4"
-          >
-            <div className={`h-10 w-1.5 rounded-full flex-shrink-0 ${s.color}`} />
+          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+            className="rounded-xl bg-white border border-gray-200 shadow-sm p-4 md:p-5 flex items-center gap-4">
+            <div className={`h-12 w-1.5 rounded-full flex-shrink-0 ${s.color}`} />
             <div className="min-w-0">
-              <p className="text-2xl font-bold text-gray-800">{s.value}</p>
+              <p className="text-2xl md:text-3xl font-bold text-gray-800">{s.value}</p>
               <p className="text-xs text-gray-400 mt-0.5 leading-tight">{s.label}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Main content: recent docs + batch completions */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        {/* Recent documents */}
-        <motion.div
-          className="lg:col-span-2"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-        >
+        {/* Recent docs */}
+        <motion.div className="lg:col-span-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <div className="rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <Clock size={14} className="text-gray-400" />
+                <Clock size={15} className="text-gray-400" />
                 <h2 className="text-sm font-semibold text-gray-700">Documentos Recentes</h2>
               </div>
               <Link href="/documents">
@@ -133,16 +116,14 @@ export function Home() {
                 const type = mockDocumentTypes.find((t) => t.id === doc.typeId);
                 return (
                   <Link key={doc.id} href={`/documents/${doc.id}`}>
-                    <div
-                      data-testid={`doc-recent-${doc.id}`}
-                      className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                    >
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-red-50">
-                        <FileText size={15} className="text-[#FF201A]" />
+                    <div data-testid={`doc-recent-${doc.id}`}
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-red-50">
+                        <FileText size={16} className="text-[#FF201A]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-gray-400">{doc.code}</span>
+                          <span className="text-[11px] font-bold text-gray-400 font-mono">{doc.code}</span>
                           <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">{doc.currentRevision}</span>
                         </div>
                         <p className="text-sm font-medium text-gray-700 truncate">{doc.title}</p>
@@ -162,39 +143,42 @@ export function Home() {
         </motion.div>
 
         {/* Right column */}
-        <motion.div
-          className="space-y-4"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-        >
-          {/* Ação rápida — só admin/supervisor pode publicar */}
+        <motion.div className="space-y-4" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           {perms.canUpload && (
             <Link href="/upload">
-              <button
-                data-testid="button-publish-document"
-                className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-[#FF201A] text-white text-sm font-semibold hover:bg-[#e01a14] transition-colors border border-[#bf0f0c] shadow-sm"
-              >
-                <Upload size={16} /> Publicar Documento
+              <button data-testid="button-publish-document"
+                className="w-full flex items-center justify-center gap-2 h-13 py-3.5 rounded-xl bg-[#FF201A] text-white text-sm font-semibold hover:bg-[#e01a14] transition-colors border border-[#bf0f0c] shadow-sm">
+                <Upload size={17} /> Publicar Documento
               </button>
             </Link>
           )}
 
-          {/* Atividade Recente */}
+          {/* Atividade Recente — logs industriais */}
           <div className="rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
-              <CheckSquare size={14} className="text-emerald-500" />
+            <div className="px-5 py-4 border-b border-gray-100">
               <h2 className="text-sm font-semibold text-gray-700">Atividade Recente</h2>
             </div>
             <div className="divide-y divide-gray-50">
-              {mockBatchCompletions.map((bc) => (
-                <div key={bc.id} className="px-5 py-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#FF201A]">{bc.documentCode}</span>
-                    <span className="text-[10px] text-gray-400">{bc.batchCode}</span>
+              {mockActivityLogs.map((log) => (
+                <div key={log.id} className="px-5 py-3.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-800">{log.userName}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <CreditCard size={11} className="text-gray-400 flex-shrink-0" />
+                        <span className="text-[11px] font-mono font-semibold text-gray-500">{log.tagCode}</span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-gray-400 flex-shrink-0 mt-0.5">{log.time}</span>
                   </div>
-                  <p className="text-xs text-gray-600 truncate mt-0.5">{bc.documentTitle}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{bc.operatorName} · {bc.completedAt}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${actionColor[log.action] ?? "bg-gray-100 text-gray-600"}`}>
+                      {log.action}
+                    </span>
+                    <span className="font-mono text-xs font-bold text-[#FF201A]">{log.documentCode}</span>
+                    <span className="text-[11px] text-blue-600 font-semibold">{log.documentRevision}</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-0.5 truncate">{log.documentTitle}</p>
                 </div>
               ))}
             </div>

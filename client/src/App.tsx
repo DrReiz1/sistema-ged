@@ -13,10 +13,7 @@ import { Upload } from "@/pages/Upload";
 import { History } from "@/pages/History";
 import { Groups } from "@/pages/Groups";
 import { Settings } from "@/pages/Settings";
-import { Profile } from "@/pages/Profile";
-import { Correspondents } from "@/pages/Correspondents";
 import { Tags } from "@/pages/Tags";
-import { StoragePaths } from "@/pages/StoragePaths";
 import { DocTypes } from "@/pages/DocTypes";
 import { Customize } from "@/pages/Customize";
 
@@ -28,25 +25,16 @@ function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={Desktop} />
-
       <Route path="/dashboard">{() => <Wrap><Home /></Wrap>}</Route>
-
       <Route path="/documents/:id">{() => <Wrap><DocumentView /></Wrap>}</Route>
       <Route path="/documents">{() => <Wrap><Documents /></Wrap>}</Route>
-
-      <Route path="/correspondents">{() => <Wrap><Correspondents /></Wrap>}</Route>
       <Route path="/tags">{() => <Wrap><Tags /></Wrap>}</Route>
-      <Route path="/storage-paths">{() => <Wrap><StoragePaths /></Wrap>}</Route>
       <Route path="/doc-types">{() => <Wrap><DocTypes /></Wrap>}</Route>
-
       <Route path="/settings">{() => <Wrap><Settings /></Wrap>}</Route>
       <Route path="/customize">{() => <Wrap><Customize /></Wrap>}</Route>
       <Route path="/groups">{() => <Wrap><Groups /></Wrap>}</Route>
       <Route path="/history">{() => <Wrap><History /></Wrap>}</Route>
-
       <Route path="/upload">{() => <Wrap><Upload /></Wrap>}</Route>
-      <Route path="/profile">{() => <Wrap><Profile /></Wrap>}</Route>
-
       <Route component={NotFound} />
     </Switch>
   );

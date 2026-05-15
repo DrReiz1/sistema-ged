@@ -3,7 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Download, Trash2, Tag, User, Calendar, FileText, Edit3, Hash, GitBranch, CheckCircle, Shield, HardDrive, CheckSquare, Upload } from "lucide-react";
-import { mockDocuments, mockDocumentTypes, mockCorrespondents, mockStoragePaths } from "@/mock/data";
+import { mockDocuments, mockDocumentTypes } from "@/mock/data";
 import { getRole, roleConfig } from "@/lib/roles";
 
 const statusColor: Record<string, string> = {
@@ -40,8 +40,6 @@ export function DocumentView() {
   }
 
   const type = mockDocumentTypes.find((t) => t.id === doc.typeId);
-  const corr = mockCorrespondents.find((c) => c.id === doc.correspondentId);
-  const path = mockStoragePaths.find((p) => p.id === doc.storagePathId);
   const currentVersion = doc.versions.find((v) => v.isCurrent);
 
   const handleBatchSubmit = (e: React.FormEvent) => {
@@ -264,12 +262,10 @@ export function DocumentView() {
             </div>
             <div className="space-y-3 p-5">
               {[
-                { icon: <Hash size={13} />, label: "Código", value: doc.code, mono: true },
-                { icon: <FileText size={13} />, label: "Tipo", value: type?.name ?? "-" },
-                { icon: <User size={13} />, label: "Correspondente", value: corr?.name ?? "-" },
-                { icon: <HardDrive size={13} />, label: "Caminho", value: path?.path ?? "-", mono: true },
-                { icon: <Calendar size={13} />, label: "Criado em", value: doc.created },
-                { icon: <Hash size={13} />, label: "Páginas", value: String(doc.pages) },
+                { icon: <Hash size={13} />,     label: "Código",     value: doc.code,        mono: true },
+                { icon: <FileText size={13} />, label: "Categoria",  value: type?.name ?? "-" },
+                { icon: <Calendar size={13} />, label: "Criado em",  value: doc.created },
+                { icon: <Hash size={13} />,     label: "Páginas",    value: String(doc.pages) },
               ].map(({ icon, label, value, mono }) => (
                 <div key={label} className="flex items-start gap-3">
                   <span className="mt-0.5 flex-shrink-0 text-gray-400">{icon}</span>
@@ -324,11 +320,10 @@ export function DocumentView() {
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 p-4">
             {[
-              { icon: <Hash size={12} />, label: "Código", value: doc.code, mono: true },
-              { icon: <FileText size={12} />, label: "Tipo", value: type?.name ?? "-" },
-              { icon: <User size={12} />, label: "Correspondente", value: corr?.name ?? "-" },
+              { icon: <Hash size={12} />,     label: "Código",    value: doc.code,        mono: true },
+              { icon: <FileText size={12} />, label: "Categoria", value: type?.name ?? "-" },
               { icon: <Calendar size={12} />, label: "Criado em", value: doc.created },
-              { icon: <Hash size={12} />, label: "Páginas", value: String(doc.pages) },
+              { icon: <Hash size={12} />,     label: "Páginas",   value: String(doc.pages) },
             ].map(({ icon, label, value, mono }) => (
               <div key={label} className="flex items-start gap-2">
                 <span className="mt-0.5 flex-shrink-0 text-gray-400">{icon}</span>

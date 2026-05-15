@@ -11,9 +11,7 @@ export interface RoleConfig {
   canManageUsers: boolean;
   canViewLogs: boolean;
   canManageTags: boolean;
-  canManageCorrespondents: boolean;
   canManageTypes: boolean;
-  canManagePaths: boolean;
   canSettings: boolean;
   canCustomize: boolean;
   canBatchCompletion: boolean;
@@ -31,9 +29,7 @@ export const roleConfig: Record<UserRole, RoleConfig> = {
     canManageUsers: false,
     canViewLogs: false,
     canManageTags: false,
-    canManageCorrespondents: false,
     canManageTypes: false,
-    canManagePaths: false,
     canSettings: false,
     canCustomize: false,
     canBatchCompletion: true,
@@ -42,8 +38,8 @@ export const roleConfig: Record<UserRole, RoleConfig> = {
     label: "Supervisor",
     badgeClass: "bg-amber-100 text-amber-700",
     allowedRoutes: [
-      "/dashboard", "/documents", "/correspondents", "/tags",
-      "/storage-paths", "/doc-types", "/history", "/settings",
+      "/dashboard", "/documents", "/tags",
+      "/doc-types", "/history", "/settings",
     ],
     canUpload: false,
     canDelete: false,
@@ -52,9 +48,7 @@ export const roleConfig: Record<UserRole, RoleConfig> = {
     canManageUsers: false,
     canViewLogs: true,
     canManageTags: true,
-    canManageCorrespondents: true,
     canManageTypes: true,
-    canManagePaths: true,
     canSettings: true,
     canCustomize: false,
     canBatchCompletion: true,
@@ -63,8 +57,8 @@ export const roleConfig: Record<UserRole, RoleConfig> = {
     label: "Administrador",
     badgeClass: "bg-red-100 text-[#FF201A]",
     allowedRoutes: [
-      "/dashboard", "/documents", "/correspondents", "/tags",
-      "/storage-paths", "/doc-types", "/history", "/settings",
+      "/dashboard", "/documents", "/tags",
+      "/doc-types", "/history", "/settings",
       "/customize", "/groups", "/upload",
     ],
     canUpload: true,
@@ -74,9 +68,7 @@ export const roleConfig: Record<UserRole, RoleConfig> = {
     canManageUsers: true,
     canViewLogs: true,
     canManageTags: true,
-    canManageCorrespondents: true,
     canManageTypes: true,
-    canManagePaths: true,
     canSettings: true,
     canCustomize: true,
     canBatchCompletion: true,

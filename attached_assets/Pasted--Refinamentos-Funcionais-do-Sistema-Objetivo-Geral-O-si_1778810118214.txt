@@ -1,0 +1,433 @@
+# Refinamentos Funcionais do Sistema
+
+## Objetivo Geral
+
+O sistema deve ser extremamente intuitivo e simples para operadores industriais.
+
+O foco NÃO é quantidade de funcionalidades.
+
+O foco é:
+
+* velocidade operacional
+* clareza visual
+* facilidade de uso
+* redução de erros humanos
+* acessibilidade industrial
+
+O sistema deve evitar exigir conhecimento técnico do operador.
+
+A interface deve tomar decisões automáticas sempre que possível.
+
+---
+
+# Tela de Login
+
+## Ajustes
+
+A tela atual está visualmente aceitável, porém deve ser refinada.
+
+O sistema deve possuir autenticação mais próxima de ambientes corporativos reais.
+
+Possíveis métodos:
+
+* crachá/tag RFID
+* matrícula
+* usuário corporativo
+* e-mail corporativo
+
+Evitar aparência de sistema genérico simples.
+
+---
+
+# Tela Inicial
+
+## Atividade Recente
+
+A seção "Atividade Recente" deve ser baseada em logs de utilização do aplicativo industrial integrado.
+
+Os logs devem simular:
+
+* usuário autenticado
+* tag/crachá utilizada
+* documento acessado
+* data/hora
+* operação realizada
+
+Exemplo:
+
+```txt id="2cv9mh"
+Carlos Silva
+Tag: TSEA-2041
+Visualizou:
+DRT-014 REV03
+10:42
+```
+
+O sistema NÃO precisa implementar integração real neste momento.
+
+Apenas simular comportamento futuro.
+
+---
+
+# Tela de Documentos
+
+## Ajustes
+
+Remover modo de visualização em lista.
+
+Manter apenas:
+
+* visualização em grade/cards
+
+Objetivo:
+
+* melhorar leitura
+* facilitar uso touch
+* simplificar interface
+
+Os cards devem ser:
+
+* maiores
+* mais legíveis
+* com foco em leitura rápida
+
+---
+
+# Tela Publicar Documento
+
+## Objetivo
+
+A publicação deve ser extremamente simplificada.
+
+O operador NÃO deve precisar definir:
+
+* código do documento
+* revisão
+* nomenclatura técnica complexa
+
+O sistema deve automatizar isso.
+
+---
+
+## Formatos Permitidos
+
+Permitir apenas documentos não editáveis ou industriais:
+
+```txt id="e6v4oc"
+.pdf
+.dwg
+.dxf
+```
+
+Bloquear:
+
+```txt id="v9pvjz"
+.docx
+.xlsx
+.pptx
+```
+
+---
+
+## Geração Automática de Código
+
+O sistema deve gerar automaticamente o código documental.
+
+Exemplo:
+
+```txt id="0myn4n"
+DRT-001
+DRT-002
+DRT-003
+```
+
+Onde:
+
+```txt id="u8jdmz"
+DRT = Desenho Regulador de Tensão
+```
+
+A IA deve criar uma estrutura configurável para grupos documentais.
+
+---
+
+## Revisão Automática
+
+O sistema deve controlar automaticamente revisões.
+
+Exemplo:
+
+```txt id="3wru5p"
+REV01
+REV02
+REV03
+```
+
+Ao publicar nova revisão:
+
+* sistema identifica documento anterior
+* incrementa revisão automaticamente
+* mantém histórico
+
+O usuário NÃO deve digitar revisão manualmente.
+
+---
+
+## UX Esperada
+
+Fluxo ideal:
+
+1. selecionar grupo documental
+2. enviar arquivo
+3. adicionar descrição
+4. publicar
+
+O sistema faz o restante automaticamente.
+
+---
+
+# Tela Correspondentes
+
+## Ação
+
+Remover completamente esta funcionalidade do sistema.
+
+Ela não faz parte do escopo atual do MVP.
+
+Remover:
+
+* página
+* menu
+* componentes relacionados
+* mock de dados relacionados
+
+---
+
+# Tela Etiquetas
+
+## Ajustes
+
+Tela permanece no sistema.
+
+Implementar funcionalidade do botão:
+
+```txt id="uhd9ik"
+Adicionar Etiqueta
+```
+
+A funcionalidade pode inicialmente ser simulada.
+
+Permitir:
+
+* nome
+* cor
+* descrição opcional
+
+As etiquetas devem ser reutilizáveis em documentos.
+
+---
+
+# Tela Pastas
+
+## Ação
+
+Remover completamente esta funcionalidade do sistema.
+
+O sistema utilizará:
+
+* categorias
+* grupos
+* filtros
+
+Evitar estrutura de pastas tradicional.
+
+---
+
+# Tela Categorias / Tipos de Documento
+
+## Objetivo
+
+Melhorar organização documental.
+
+---
+
+## Estrutura Esperada
+
+Os tipos de documento devem funcionar como agrupadores.
+
+Exemplo:
+
+```txt id="2vwhm8"
+Desenhos Técnicos
+  ├── Reguladores
+  ├── Painéis
+  ├── Cabos
+
+Procedimentos
+  ├── Manutenção
+  ├── Inspeção
+  ├── Operação
+```
+
+---
+
+## Grupos de Documentos
+
+O sistema deve permitir criação de grupos documentais.
+
+Objetivo:
+
+Facilitar acesso rápido para operadores.
+
+Exemplo:
+
+```txt id="ul9ckc"
+Grupo:
+Montagem Regulador SE-01
+
+Documentos:
+- DRT-001
+- DRT-002
+- PRC-004
+```
+
+Isso facilita visualização operacional.
+
+---
+
+# Tela Histórico
+
+## Objetivo
+
+Exibir rastreabilidade operacional.
+
+---
+
+## Informações Exibidas
+
+O histórico deve exibir:
+
+* usuário
+* tag/crachá
+* documento acessado
+* data
+* horário
+* ação executada
+
+Exemplo:
+
+```txt id="axwnul"
+Carlos Silva
+Tag: TSEA-1042
+Visualizou:
+DRT-014 REV03
+11/05/2026 - 08:41
+```
+
+---
+
+## Observação
+
+Pode existir futuramente:
+
+* histórico do GED
+* histórico operacional
+* histórico de revisões
+
+No MVP, apenas simular estrutura visual.
+
+---
+
+# Tela Usuários
+
+## Diretriz
+
+Manter tela existente.
+
+Porém:
+
+* simplificar complexidade
+* evitar excesso de permissões
+* manter RBAC básico
+
+Perfis iniciais:
+
+* operador
+* supervisor
+* administrador
+
+---
+
+# Tela Personalização
+
+## Ação
+
+Remover funcionalidade de mudança de tema.
+
+O sistema deve possuir identidade visual fixa da TSEA.
+
+Remover:
+
+* troca de cores
+* customização de tema
+* preferências visuais complexas
+
+---
+
+# Diretrizes Visuais Gerais
+
+## Objetivo
+
+A interface deve parecer:
+
+* robusta
+* industrial
+* moderna
+* limpa
+* corporativa
+
+---
+
+## Ajustes Gerais
+
+Aumentar:
+
+* tamanho dos cards
+* tamanho dos botões
+* espaçamento
+* área clicável
+* legibilidade
+
+---
+
+## Interface Industrial
+
+Priorizar:
+
+* poucos elementos
+* leitura rápida
+* alto contraste
+* navegação simples
+* experiência touch
+
+---
+
+# Regra Principal do Produto
+
+O sistema deve esconder complexidade técnica do operador.
+
+Sempre que possível:
+
+* automatizar
+* simplificar
+* reduzir campos
+* evitar decisões técnicas manuais
+
+O operador deve apenas executar ações simples.
+
+O sistema deve controlar:
+
+* revisão
+* padronização
+* organização
+* rastreabilidade
