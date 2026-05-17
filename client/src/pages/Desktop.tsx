@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, setAuthToken } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
 const credentialHints = [
@@ -24,7 +24,10 @@ export const Desktop = (): JSX.Element => {
   const loginMutation = useMutation({
     mutationFn: () =>
       apiRequest("POST", "/api/login", { username: email, password }),
-    onSuccess: async () => {
+    onSuccess: async (response) => {
+      const payload = await response.json();
+      setAuthToken(payload.token ?? null);
+      queryClient.clear();
       await queryClient.invalidateQueries({ queryKey: ["/api/me"] });
       navigate("/dashboard");
     },

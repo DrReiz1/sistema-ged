@@ -76,6 +76,8 @@ export const roleConfig: Record<UserRole, RoleConfig> = {
 };
 
 export function getRole(role?: string): UserRole {
+  if (role === "admin") return "administrador";
+  if (role === "operator") return "operador";
   if (role === "administrador" || role === "supervisor" || role === "operador") return role;
   return "operador";
 }

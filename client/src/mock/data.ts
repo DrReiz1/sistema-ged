@@ -86,6 +86,8 @@ export interface Document {
   title: string;
   description: string;
   typeId: number;
+  correspondentId: number;
+  storagePathId: number;
   tags: string[];
   created: string;
   added: string;
@@ -100,7 +102,7 @@ export interface Document {
 export const mockDocuments: Document[] = [
   {
     id: 1, code: "DES-001", title: "Planta Unifilar Subestação SE-01", description: "Planta unifilar completa da subestação SE-01 com todos os disjuntores e chaves.",
-    typeId: 1, tags: ["Alta Tensão", "Subestação", "2024"],
+    typeId: 1, correspondentId: 1, storagePathId: 1, tags: ["Alta Tensão", "Subestação", "2024"],
     created: "2024-01-15", added: "2024-01-16", pages: 6, status: "indexado", fileType: "PDF", currentRevision: "REV04", isFavorite: false,
     versions: [
       { id: 101, documentId: 1, revision: "REV04", uploadedBy: "engenharia@tsea.com.br", uploadedAt: "2024-04-10 09:00", isCurrent: true,  changeDescription: "Atualização do ramal de entrada conforme projeto aprovado.", checksum: "8f34f2ab-22cd", size: "8.7 MB", filePath: "/storage/2024/8f34f2ab.pdf" },
@@ -111,7 +113,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 2, code: "PRO-001", title: "Procedimento de Manutenção Preventiva SE-01", description: "Procedimento completo para execução da manutenção preventiva semestral da subestação SE-01.",
-    typeId: 2, tags: ["Manutenção", "Preventiva", "Subestação", "2024"],
+    typeId: 2, correspondentId: 2, storagePathId: 1, tags: ["Manutenção", "Preventiva", "Subestação", "2024"],
     created: "2024-02-01", added: "2024-02-02", pages: 12, status: "indexado", fileType: "PDF", currentRevision: "REV02", isFavorite: false,
     versions: [
       { id: 201, documentId: 2, revision: "REV02", uploadedBy: "engenharia@tsea.com.br", uploadedAt: "2024-02-01 11:00", isCurrent: true,  changeDescription: "Inclusão de EPI obrigatório para cada etapa.", checksum: "d45ef6g7-hi89", size: "2.4 MB", filePath: "/storage/2024/d45ef6g7.pdf" },
@@ -120,7 +122,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 3, code: "ITP-001", title: "Instrução de Trabalho — Troca de Fusível NH", description: "Passo a passo para troca segura de fusíveis NH em painéis de baixa tensão.",
-    typeId: 3, tags: ["NR-10", "Segurança", "2025"],
+    typeId: 3, correspondentId: 3, storagePathId: 2, tags: ["NR-10", "Segurança", "2025"],
     created: "2025-01-10", added: "2025-01-10", pages: 4, status: "indexado", fileType: "PDF", currentRevision: "REV01", isFavorite: false,
     versions: [
       { id: 301, documentId: 3, revision: "REV01", uploadedBy: "engenharia@tsea.com.br", uploadedAt: "2025-01-10 08:00", isCurrent: true, changeDescription: "Versão inicial aprovada pelo supervisor.", checksum: "f67gh8i9-jk01", size: "0.9 MB", filePath: "/storage/2025/f67gh8i9.pdf" },
@@ -128,7 +130,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 4, code: "CHK-001", title: "Checklist Inspeção Diária — Painel CC", description: "Lista de verificação para inspeção diária dos painéis de corrente contínua.",
-    typeId: 4, tags: ["Checklist", "Inspeção", "Preventiva"],
+    typeId: 4, correspondentId: 4, storagePathId: 2, tags: ["Checklist", "Inspeção", "Preventiva"],
     created: "2024-03-05", added: "2024-03-05", pages: 2, status: "indexado", fileType: "PDF", currentRevision: "REV03", isFavorite: false,
     versions: [
       { id: 401, documentId: 4, revision: "REV03", uploadedBy: "operacoes@tsea.com.br", uploadedAt: "2024-12-01 07:30", isCurrent: true,  changeDescription: "Adição de itens de verificação de temperatura.", checksum: "g78hi9j0-kl12", size: "0.5 MB", filePath: "/storage/2024/g78hi9j0.pdf" },
@@ -138,7 +140,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 5, code: "LAU-001", title: "Laudo Técnico — Cabo XLPE 15kV Lote 22", description: "Laudo de ensaio dielétrico do cabo XLPE 15kV do lote 22.",
-    typeId: 5, tags: ["Laudo", "Alta Tensão"],
+    typeId: 5, correspondentId: 5, storagePathId: 3, tags: ["Laudo", "Alta Tensão"],
     created: "2024-04-28", added: "2024-04-28", pages: 15, status: "erro", fileType: "PDF", currentRevision: "REV01", isFavorite: false,
     versions: [
       { id: 501, documentId: 5, revision: "REV01", uploadedBy: "lab@tsea.com.br", uploadedAt: "2024-04-28 17:30", isCurrent: true, changeDescription: "Versão inicial — erro no processamento OCR.", checksum: "j01kl2m3-no45", size: "3.3 MB", filePath: "/storage/2024/j01kl2m3.pdf" },
@@ -146,7 +148,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 6, code: "ART-001", title: "ART — Ampliação Rede BT Setor Industrial", description: "Anotação de Responsabilidade Técnica para obra de ampliação da rede de baixa tensão.",
-    typeId: 6, tags: ["ART", "2024"],
+    typeId: 6, correspondentId: 2, storagePathId: 4, tags: ["ART", "2024"],
     created: "2024-04-10", added: "2024-04-10", pages: 3, status: "indexado", fileType: "PDF", currentRevision: "REV01", isFavorite: false,
     versions: [
       { id: 601, documentId: 6, revision: "REV01", uploadedBy: "admin@tsea.com.br", uploadedAt: "2024-04-10 14:00", isCurrent: true, changeDescription: "Versão inicial registrada no CREA-SP.", checksum: "k12lm3n4-op56", size: "0.9 MB", filePath: "/storage/2024/k12lm3n4.pdf" },
@@ -154,7 +156,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 7, code: "CER-001", title: "NR-10 — Certificado Treinamento Equipe Campo", description: "Certificado de treinamento NR-10 Básico + SEP para os operadores de campo.",
-    typeId: 7, tags: ["NR-10", "Treinamento", "Segurança"],
+    typeId: 7, correspondentId: 6, storagePathId: 5, tags: ["NR-10", "Treinamento", "Segurança"],
     created: "2024-04-20", added: "2024-04-20", pages: 5, status: "indexado", fileType: "PDF", currentRevision: "REV01", isFavorite: false,
     versions: [
       { id: 701, documentId: 7, revision: "REV01", uploadedBy: "rh@tsea.com.br", uploadedAt: "2024-04-20 10:00", isCurrent: true, changeDescription: "Versão inicial.", checksum: "l23mn4o5-pq67", size: "1.2 MB", filePath: "/storage/2024/l23mn4o5.pdf" },
@@ -162,7 +164,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 8, code: "PRO-002", title: "Memorial Descritivo — Projeto Fotovoltaico 150kW", description: "Memorial descritivo completo do projeto de geração solar de 150kW.",
-    typeId: 2, tags: ["Solar", "Projeto", "2024"],
+    typeId: 2, correspondentId: 2, storagePathId: 6, tags: ["Solar", "Projeto", "2024"],
     created: "2024-04-18", added: "2024-04-19", pages: 24, status: "processando", fileType: "PDF", currentRevision: "REV02", isFavorite: false,
     versions: [
       { id: 801, documentId: 8, revision: "REV02", uploadedBy: "engenharia@tsea.com.br", uploadedAt: "2024-04-18 16:00", isCurrent: true,  changeDescription: "Atualização com especificação dos inversores Fronius.", checksum: "m34no5p6-qr78", size: "5.1 MB", filePath: "/storage/2024/m34no5p6.pdf" },
@@ -171,7 +173,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 9, code: "PRO-003", title: "Ordem de Serviço 2024-087 — Manutenção Preventiva TR-07", description: "Ordem de serviço para manutenção preventiva semestral do transformador TR-07.",
-    typeId: 2, tags: ["OS", "Manutenção", "Preventiva", "Transformador"],
+    typeId: 2, correspondentId: 4, storagePathId: 2, tags: ["OS", "Manutenção", "Preventiva", "Transformador"],
     created: "2024-05-01", added: "2024-05-01", pages: 4, status: "indexado", fileType: "PDF", currentRevision: "REV01", isFavorite: false,
     versions: [
       { id: 901, documentId: 9, revision: "REV01", uploadedBy: "operacoes@tsea.com.br", uploadedAt: "2024-05-01 07:00", isCurrent: true, changeDescription: "Versão inicial da OS.", checksum: "o56pq7r8-st90", size: "1.0 MB", filePath: "/storage/2024/o56pq7r8.pdf" },
@@ -179,7 +181,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 10, code: "CON-001", title: "Nota Fiscal — Equipamentos SE-03 ABB", description: "Nota fiscal referente à compra de disjuntores e IHMs para a subestação SE-03.",
-    typeId: 8, tags: ["NF", "2024"],
+    typeId: 8, correspondentId: 1, storagePathId: 7, tags: ["NF", "2024"],
     created: "2024-04-22", added: "2024-04-22", pages: 2, status: "indexado", fileType: "PDF", currentRevision: "REV01", isFavorite: false,
     versions: [
       { id: 1001, documentId: 10, revision: "REV01", uploadedBy: "financeiro@tsea.com.br", uploadedAt: "2024-04-22 15:00", isCurrent: true, changeDescription: "Versão inicial.", checksum: "p67qr8s9-tu01", size: "0.5 MB", filePath: "/storage/2024/p67qr8s9.pdf" },
@@ -187,7 +189,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 11, code: "CER-002", title: "Certificado Calibração Alicate Amperímetro SN-4421", description: "Certificado de calibração do alicate amperímetro nº série 4421.",
-    typeId: 7, tags: ["Calibração"],
+    typeId: 7, correspondentId: 5, storagePathId: 3, tags: ["Calibração"],
     created: "2024-05-10", added: "2024-05-10", pages: 2, status: "processando", fileType: "PDF", currentRevision: "REV01", isFavorite: false,
     versions: [
       { id: 1101, documentId: 11, revision: "REV01", uploadedBy: "lab@tsea.com.br", uploadedAt: "2024-05-10 11:00", isCurrent: true, changeDescription: "Versão inicial.", checksum: "q78rs9t0-uv12", size: "0.7 MB", filePath: "/storage/2024/q78rs9t0.pdf" },
@@ -195,7 +197,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: 12, code: "PRO-004", title: "PMOC — Plano de Manutenção Ar Condicionado", description: "Plano de manutenção e operação e controle dos equipamentos de ar condicionado.",
-    typeId: 2, tags: ["Manutenção", "Preventiva"],
+    typeId: 2, correspondentId: 3, storagePathId: 8, tags: ["Manutenção", "Preventiva"],
     created: "2024-05-07", added: "2024-05-07", pages: 9, status: "indexado", fileType: "PDF", currentRevision: "REV02", isFavorite: false,
     versions: [
       { id: 1201, documentId: 12, revision: "REV02", uploadedBy: "engenharia@tsea.com.br", uploadedAt: "2024-05-07 14:00", isCurrent: true,  changeDescription: "Atualização do cronograma de manutenção.", checksum: "r89st0u1-vw23", size: "2.0 MB", filePath: "/storage/2024/r89st0u1.pdf" },
@@ -205,6 +207,38 @@ export const mockDocuments: Document[] = [
 ];
 
 // ── Logs de Atividade Industrial ──────────────────────────────────────────────
+
+export interface Correspondent {
+  id: number;
+  name: string;
+  description: string;
+}
+
+export const mockCorrespondents: Correspondent[] = [
+  { id: 1, name: "ABB Ltda.", description: "Fornecedor de equipamentos de subestacao e automacao." },
+  { id: 2, name: "TSEA Engenharia", description: "Equipe interna responsavel pelos documentos tecnicos." },
+  { id: 3, name: "Supervisor de Campo", description: "Responsavel operacional pela execucao em campo." },
+  { id: 4, name: "Operacoes TSEA", description: "Area de manutencao e operacao industrial." },
+  { id: 5, name: "Laboratorio Tecnico", description: "Equipe de ensaios, laudos e calibracao." },
+  { id: 6, name: "Recursos Humanos", description: "Responsavel por treinamentos e certificados." },
+];
+
+export interface StoragePath {
+  id: number;
+  path: string;
+  description: string;
+}
+
+export const mockStoragePaths: StoragePath[] = [
+  { id: 1, path: "documents/SE-01/desenhos", description: "Desenhos e procedimentos da subestacao SE-01." },
+  { id: 2, path: "documents/operacoes/checklists", description: "Checklists e ordens operacionais do chao de fabrica." },
+  { id: 3, path: "documents/laboratorio/laudos", description: "Laudos, ensaios e certificados de calibracao." },
+  { id: 4, path: "documents/legal/art", description: "Documentos legais e ARTs do sistema." },
+  { id: 5, path: "documents/rh/treinamentos", description: "Certificados e historicos de treinamento." },
+  { id: 6, path: "documents/projetos/fotovoltaico", description: "Memoriais e documentos do projeto fotovoltaico." },
+  { id: 7, path: "documents/financeiro/notas-fiscais", description: "Notas fiscais e comprovantes de compra." },
+  { id: 8, path: "documents/utilidades/pmoc", description: "Planos de manutencao predial e utilidades." },
+];
 
 export interface ActivityLog {
   id: number;

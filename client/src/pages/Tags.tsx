@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Tag, FileText, X } from "lucide-react";
-import { mockTagObjects, type Tag as TagType, mockDocuments } from "@/mock/data";
+import { Plus, Tag, FileText, X } from "lucide-react";
+import { apiRequest, fetchJson, queryClient } from "@/lib/queryClient";
+import { type ApiDocument, type ApiTag } from "@/lib/docstation";
 
 const PRESET_COLORS = [
   "#EF4444", "#F97316", "#F59E0B", "#10B981",
@@ -10,27 +12,46 @@ const PRESET_COLORS = [
 ];
 
 export function Tags() {
-  const [tags, setTags] = useState<TagType[]>(mockTagObjects);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState("#3B82F6");
   const [newDesc, setNewDesc] = useState("");
-  const [nextId, setNextId] = useState(mockTagObjects.length + 1);
 
-  const docCount = (tagName: string) => mockDocuments.filter((d) => d.tags.includes(tagName)).length;
+  const { data: tags = [] } = useQuery<ApiTag[]>({
+    queryKey: ["/api/tags"],
+    queryFn: () => fetchJson<ApiTag[]>("/api/tags"),
+  });
+
+  const { data: documents = [] } = useQuery<ApiDocument[]>({
+    queryKey: ["/api/documents"],
+    queryFn: () => fetchJson<ApiDocument[]>("/api/documents"),
+  });
+
+  const createTagMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/tags", {
+      name: newName.trim(),
+      color: newColor,
+      description: newDesc.trim() || undefined,
+    }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/tags"] });
+      setNewName("");
+      setNewColor("#3B82F6");
+      setNewDesc("");
+      setShowForm(false);
+    },
+  });
+
+  const docCount = (tagId: string) => documents.filter((document) => document.tags.some((tag) => tag.id === tagId)).length;
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    const name = newName.trim();
-    if (!name || tags.some((t) => t.name === name)) return;
-    setTags((p) => [...p, { id: nextId, name, color: newColor, description: newDesc.trim() || undefined }]);
-    setNextId((n) => n + 1);
-    setNewName(""); setNewColor("#3B82F6"); setNewDesc("");
-    setShowForm(false);
+    if (!newName.trim()) return;
+    createTagMutation.mutate();
   };
 
-  const filtered = tags.filter((t) => !search || t.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = tags.filter((tag) => !search || tag.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="space-y-5 max-w-3xl">
@@ -46,7 +67,6 @@ export function Tags() {
         </button>
       </div>
 
-      {/* Add form */}
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
@@ -61,7 +81,7 @@ export function Tags() {
                 <div className="relative">
                   <Tag size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input value={newName} onChange={(e) => setNewName(e.target.value)} required
-                    placeholder="Ex: Alta Tensão, NR-10, Preventiva..."
+                    placeholder="Ex: Alta TensÃ£o, NR-10, Preventiva..."
                     className="w-full h-11 pl-10 pr-4 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-[#FF201A]"
                     data-testid="input-new-tag" />
                 </div>
@@ -70,24 +90,18 @@ export function Tags() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Cor</label>
                 <div className="flex flex-wrap gap-2">
-                  {PRESET_COLORS.map((c) => (
-                    <button key={c} type="button" onClick={() => setNewColor(c)}
-                      className={`h-9 w-9 rounded-lg transition-all ${newColor === c ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : "hover:scale-105"}`}
-                      style={{ background: c }} />
+                  {PRESET_COLORS.map((color) => (
+                    <button key={color} type="button" onClick={() => setNewColor(color)}
+                      className={`h-9 w-9 rounded-lg transition-all ${newColor === color ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : "hover:scale-105"}`}
+                      style={{ background: color }} />
                   ))}
                 </div>
-                {newName && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs text-gray-400">Prévia:</span>
-                    <span className="rounded-lg px-3 py-1 text-xs font-semibold text-white" style={{ background: newColor }}>{newName}</span>
-                  </div>
-                )}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-gray-700">Descrição <span className="text-gray-400 font-normal">(opcional)</span></label>
+                <label className="text-sm font-semibold text-gray-700">DescriÃ§Ã£o <span className="text-gray-400 font-normal">(opcional)</span></label>
                 <input value={newDesc} onChange={(e) => setNewDesc(e.target.value)}
-                  placeholder="Descrição breve desta etiqueta..."
+                  placeholder="DescriÃ§Ã£o breve desta etiqueta..."
                   className="w-full h-11 px-4 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-[#FF201A]"
                   data-testid="input-tag-description" />
               </div>
@@ -99,7 +113,7 @@ export function Tags() {
                 </button>
                 <button type="submit"
                   className="flex-1 h-11 rounded-xl bg-[#FF201A] text-white text-sm font-semibold hover:bg-[#e01a14] transition-colors border border-[#bf0f0c]">
-                  Salvar Etiqueta
+                  {createTagMutation.isPending ? "Salvando..." : "Salvar Etiqueta"}
                 </button>
               </div>
             </form>
@@ -107,16 +121,14 @@ export function Tags() {
         )}
       </AnimatePresence>
 
-      {/* Search */}
       <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filtrar etiquetas..."
         className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-sm focus:outline-none focus:border-[#FF201A]" />
 
       <p className="text-xs text-gray-400">{filtered.length} etiqueta(s)</p>
 
-      {/* Tag grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {filtered.map((tag, i) => {
-          const count = docCount(tag.name);
+          const count = docCount(tag.id);
           return (
             <motion.div key={tag.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}
               className="group flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-all"
@@ -125,10 +137,7 @@ export function Tags() {
                 <span className="rounded-lg px-3 py-1 text-xs font-bold text-white" style={{ background: tag.color }}>
                   {tag.name}
                 </span>
-                <button onClick={() => setTags((p) => p.filter((t) => t.id !== tag.id))}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                  <Trash2 size={13} />
-                </button>
+                <span className="text-[10px] text-gray-300 opacity-0 group-hover:opacity-100">API</span>
               </div>
               {tag.description && (
                 <p className="text-[11px] text-gray-400 leading-tight mb-2 flex-1">{tag.description}</p>

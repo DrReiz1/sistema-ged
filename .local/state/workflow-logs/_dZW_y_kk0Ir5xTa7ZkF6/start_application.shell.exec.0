@@ -1,0 +1,13 @@
+[1G[0K⠙[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠙[1G[0KUsuário criado: admin@tsea.com.br [administrador]
+Usuário criado: supervisor@tsea.com.br [supervisor]
+Usuário criado: operador@tsea.com.br [operador]
+7:42:06 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+7:42:28 PM [express] POST /api/login 200 in 54ms :: {"id":"39252808-4a0f-451e-96c8-6026082fca3a","username":"admin@tsea.com.br","role":"administrador"}
+7:42:28 PM [express] GET /api/me 200 in 3ms :: {"id":"39252808-4a0f-451e-96c8-6026082fca3a","username":"admin@tsea.com.br","role":"administrador"}

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { LogOut, Menu } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, setAuthToken } from "@/lib/queryClient";
 import { getRole, roleConfig } from "@/lib/roles";
 
 interface TopbarProps {
@@ -20,6 +20,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const logoutMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/logout"),
     onSuccess: () => {
+      setAuthToken(null);
       queryClient.clear();
       navigate("/");
     },

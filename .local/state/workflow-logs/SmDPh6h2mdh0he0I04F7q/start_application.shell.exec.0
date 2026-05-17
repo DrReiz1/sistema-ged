@@ -1,0 +1,310 @@
+[1G[0K⠙[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠙[1G[0KUsuário criado: admin@tsea.com.br [administrador]
+Usuário criado: supervisor@tsea.com.br [supervisor]
+Usuário criado: operador@tsea.com.br [operador]
+7:43:55 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:45:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Home.tsx, /src/index.css[22m
+7:45:50 PM [express] GET /api/me 401 in 4ms :: {"message":"Não autenticado."}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:46:12 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Documents.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:46:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Documents.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:46:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DocumentView.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:46:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Documents.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:46:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/DocumentView.tsx, /src/index.css[22m
+7:46:29 PM [express] GET /api/me 401 in 1ms :: {"message":"Não autenticado."}
+7:47:05 PM [express] POST /api/login 200 in 51ms :: {"id":"78d532d4-30a2-42d0-986e-85300e74ad1f","username":"supervisor@tsea.com.br","role":"supervisor"}
+7:47:05 PM [express] GET /api/me 200 in 3ms :: {"id":"78d532d4-30a2-42d0-986e-85300e74ad1f","username":"supervisor@tsea.com.br","role":"supervisor"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:58:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/sidebar/Sidebar.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:59:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Documents.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m7:59:36 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Home.tsx, /src/index.css[22m
+7:59:53 PM [express] GET /api/me 401 in 1ms :: {"message":"Não autenticado."}
+8:00:44 PM [express] POST /api/logout 200 in 2ms :: {"message":"Logout realizado."}
+8:00:48 PM [express] POST /api/login 200 in 67ms :: {"id":"36b696b6-0f28-4035-ada8-8b0097869471","username":"admin@tsea.com.br","role":"administrador"}
+8:00:49 PM [express] GET /api/me 200 in 2ms :: {"id":"36b696b6-0f28-4035-ada8-8b0097869471","username":"admin@tsea.com.br","role":"administrador"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m8:03:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Desktop.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m8:03:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/topbar/Topbar.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m8:04:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Documents.tsx, /src/index.css[22m
+8:43:02 PM [express] POST /api/logout 200 in 2ms :: {"message":"Logout realizado."}
+8:43:05 PM [express] POST /api/login 200 in 75ms :: {"id":"78d532d4-30a2-42d0-986e-85300e74ad1f","username":"supervisor@tsea.com.br","role":"supervisor"}
+8:43:05 PM [express] GET /api/me 200 in 2ms :: {"id":"78d532d4-30a2-42d0-986e-85300e74ad1f","username":"supervisor@tsea.com.br","role":"supervisor"}

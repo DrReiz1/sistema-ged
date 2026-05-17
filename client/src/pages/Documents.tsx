@@ -1,20 +1,10 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Search, Download, Eye, FileText, ChevronDown, X, GitBranch } from "lucide-react";
-import { Link } from "wouter";
-import { mockDocuments, mockDocumentTypes, mockTags } from "@/mock/data";
-
-const statusColor: Record<string, string> = {
-  indexado:    "bg-emerald-100 text-emerald-700",
-  processando: "bg-amber-100 text-amber-700",
-  erro:        "bg-red-100 text-red-600",
-};
-
-const statusLabel: Record<string, string> = {
-  indexado:    "Indexado",
-  processando: "Processando",
-  erro:        "Erro",
-};
+import { Link, useLocation } from "wouter";
+import { buildAuthenticatedUrl, fetchJson } from "@/lib/queryClient";
+import { type ApiCategory, type ApiDocument, type ApiTag, buildDocumentQuery, mapStatusClass, mapStatusLabel } from "@/lib/docstation";
 
 function SimpleSelect({ label, options, value, onChange }: {
   label: string;
@@ -70,10 +60,33 @@ function SimpleSelect({ label, options, value, onChange }: {
 }
 
 export function Documents() {
-  const [search, setSearch] = useState("");
+  const [, navigate] = useLocation();
+  const initialSearch = new URLSearchParams(window.location.search).get("q") ?? "";
+  const [search, setSearch] = useState(initialSearch);
   const [selectedType, setSelectedType] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState<"all" | ApiDocument["status"]>("all");
   const [selectedTag, setSelectedTag] = useState("all");
+
+  const { data: categories = [] } = useQuery<ApiCategory[]>({
+    queryKey: ["/api/categories"],
+    queryFn: () => fetchJson<ApiCategory[]>("/api/categories"),
+  });
+
+  const { data: tags = [] } = useQuery<ApiTag[]>({
+    queryKey: ["/api/tags"],
+    queryFn: () => fetchJson<ApiTag[]>("/api/tags"),
+  });
+
+  const documentUrl = buildDocumentQuery({
+    search: search || undefined,
+    categoryId: selectedType !== "all" ? selectedType : undefined,
+    tagId: selectedTag !== "all" ? selectedTag : undefined,
+  });
+
+  const { data: documents = [] } = useQuery<ApiDocument[]>({
+    queryKey: ["/api/documents", search, selectedType, selectedTag],
+    queryFn: () => fetchJson<ApiDocument[]>(documentUrl),
+  });
 
   const hasFilters = selectedType !== "all" || selectedStatus !== "all" || selectedTag !== "all";
 
@@ -83,35 +96,21 @@ export function Documents() {
     setSelectedTag("all");
   };
 
-  const filtered = mockDocuments.filter((doc) => {
-    const q = search.toLowerCase();
-    const matchSearch =
-      !q ||
-      doc.title.toLowerCase().includes(q) ||
-      doc.code.toLowerCase().includes(q) ||
-      doc.description.toLowerCase().includes(q) ||
-      doc.tags.some((t) => t.toLowerCase().includes(q));
-    const matchType   = selectedType   === "all" || doc.typeId === Number(selectedType);
-    const matchStatus = selectedStatus === "all" || doc.status === selectedStatus;
-    const matchTag    = selectedTag    === "all" || doc.tags.includes(selectedTag);
-    return matchSearch && matchType && matchStatus && matchTag;
-  });
+  const filtered = documents.filter((doc) => selectedStatus === "all" || doc.status === selectedStatus);
 
   return (
     <div className="space-y-5 max-w-6xl mx-auto">
-      {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Documentos</h1>
         <p className="text-sm text-gray-400 mt-0.5">{filtered.length} documento(s) encontrado(s)</p>
       </div>
 
-      {/* Search + Filters */}
       <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-4">
         <div className="relative">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             data-testid="input-doc-search"
-            placeholder="Buscar por título, código ou etiqueta..."
+            placeholder="Buscar por título, código ou descrição..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full h-12 pl-12 pr-10 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A] focus:ring-1 focus:ring-[#FF201A]/20 transition-all"
@@ -124,11 +123,11 @@ export function Documents() {
         </div>
         <div className="flex flex-wrap items-center gap-2 mt-3">
           <SimpleSelect label="Categoria" value={selectedType} onChange={setSelectedType}
-            options={[{ value: "all", label: "Todas as categorias" }, ...mockDocumentTypes.map((t) => ({ value: String(t.id), label: t.name }))]} />
-          <SimpleSelect label="Status" value={selectedStatus} onChange={setSelectedStatus}
-            options={[{ value: "all", label: "Qualquer status" }, { value: "indexado", label: "Indexado" }, { value: "processando", label: "Processando" }, { value: "erro", label: "Erro" }]} />
+            options={[{ value: "all", label: "Todas as categorias" }, ...categories.map((t) => ({ value: t.id, label: t.name }))]} />
+          <SimpleSelect label="Status" value={selectedStatus} onChange={(value) => setSelectedStatus(value as "all" | ApiDocument["status"])}
+            options={[{ value: "all", label: "Qualquer status" }, { value: "active", label: "Ativo" }, { value: "draft", label: "Rascunho" }, { value: "archived", label: "Arquivado" }]} />
           <SimpleSelect label="Etiqueta" value={selectedTag} onChange={setSelectedTag}
-            options={[{ value: "all", label: "Todas as etiquetas" }, ...mockTags.map((t) => ({ value: t, label: t }))]} />
+            options={[{ value: "all", label: "Todas as etiquetas" }, ...tags.map((t) => ({ value: t.id, label: t.name }))]} />
           {hasFilters && (
             <button onClick={clearAll} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#FF201A] transition-colors h-11 px-2">
               <X size={13} /> Limpar filtros
@@ -137,7 +136,6 @@ export function Documents() {
         </div>
       </div>
 
-      {/* Empty state */}
       {filtered.length === 0 && (
         <div className="rounded-xl bg-white border border-gray-200 shadow-sm py-24 flex flex-col items-center gap-4 text-gray-400">
           <FileText size={48} strokeWidth={1} />
@@ -145,78 +143,74 @@ export function Documents() {
             <p className="text-base font-medium text-gray-600">Nenhum documento encontrado</p>
             <p className="text-sm mt-1">Tente ajustar os filtros ou a busca</p>
           </div>
-          {(search || hasFilters) && (
-            <button onClick={() => { setSearch(""); clearAll(); }}
-              className="rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-              Limpar tudo
-            </button>
-          )}
         </div>
       )}
 
-      {/* Grid */}
       {filtered.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
-          {filtered.map((doc, i) => {
-            const type = mockDocumentTypes.find((t) => t.id === doc.typeId);
-            return (
-              <motion.div key={doc.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-                <Link href={`/documents/${doc.id}`}>
-                  <div
-                    className="group cursor-pointer rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all"
-                    data-testid={`card-doc-${doc.id}`}
-                  >
-                    {/* Thumbnail */}
-                    <div className={`relative flex h-40 md:h-48 items-center justify-center ${doc.status === "erro" ? "bg-red-50" : "bg-gray-100"}`}>
-                      <svg viewBox="0 0 80 100" className="h-24 w-20 opacity-15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="5" y="5" width="70" height="90" rx="6" fill="#555" />
-                        <rect x="14" y="18" width="52" height="5" rx="2" fill="white" opacity="0.7" />
-                        <rect x="14" y="29" width="52" height="5" rx="2" fill="white" opacity="0.7" />
-                        <rect x="14" y="40" width="36" height="5" rx="2" fill="white" opacity="0.7" />
-                        <rect x="14" y="56" width="52" height="22" rx="3" fill="white" opacity="0.25" />
-                      </svg>
-                      {/* File type badge */}
-                      <div className="absolute top-3 left-3">
-                        <span className="rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-bold text-gray-500 shadow-sm">
-                          {doc.fileType}
-                        </span>
-                      </div>
-                      {/* Hover actions */}
-                      <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-700 hover:bg-gray-50 shadow-md transition-colors">
-                          <Eye size={16} />
-                        </button>
-                        <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-700 hover:bg-gray-50 shadow-md transition-colors">
-                          <Download size={16} />
-                        </button>
-                      </div>
+          {filtered.map((doc, i) => (
+            <motion.div key={doc.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+              <Link href={`/documents/${doc.id}`}>
+                <div
+                  className="group cursor-pointer rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all"
+                  data-testid={`card-doc-${doc.id}`}
+                >
+                  <div className={`relative flex h-40 md:h-48 items-center justify-center ${doc.status === "archived" ? "bg-slate-100" : "bg-gray-100"}`}>
+                    <svg viewBox="0 0 80 100" className="h-24 w-20 opacity-15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="5" y="5" width="70" height="90" rx="6" fill="#555" />
+                      <rect x="14" y="18" width="52" height="5" rx="2" fill="white" opacity="0.7" />
+                      <rect x="14" y="29" width="52" height="5" rx="2" fill="white" opacity="0.7" />
+                      <rect x="14" y="40" width="36" height="5" rx="2" fill="white" opacity="0.7" />
+                      <rect x="14" y="56" width="52" height="22" rx="3" fill="white" opacity="0.25" />
+                    </svg>
+                    <div className="absolute top-3 left-3">
+                      <span className="rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-bold text-gray-500 shadow-sm">
+                        {doc.currentRevision?.fileType?.toUpperCase() ?? "SEM ARQ"}
+                      </span>
                     </div>
-
-                    {/* Info */}
-                    <div className="p-3 md:p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-bold text-gray-400 font-mono">{doc.code}</span>
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">{doc.currentRevision}</span>
-                      </div>
-                      <p className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug min-h-[40px]">{doc.title}</p>
-                      <div className="flex items-center justify-between mt-3">
-                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusColor[doc.status]}`}>
-                          {statusLabel[doc.status] ?? doc.status}
-                        </span>
-                        <div className="flex items-center gap-1 text-[11px] text-gray-400">
-                          <GitBranch size={11} />
-                          <span>{doc.versions.length}</span>
-                        </div>
-                      </div>
-                      {type && (
-                        <p className="mt-2 text-[11px] text-gray-400 truncate">{type.name}</p>
-                      )}
+                    <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-700 hover:bg-gray-50 shadow-md transition-colors"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          navigate(`/documents/${doc.id}`);
+                        }}>
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-700 hover:bg-gray-50 shadow-md transition-colors"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          window.open(buildAuthenticatedUrl(`/api/documents/${doc.id}/download`), "_blank", "noopener,noreferrer");
+                        }}>
+                        <Download size={16} />
+                      </button>
                     </div>
                   </div>
-                </Link>
-              </motion.div>
-            );
-          })}
+
+                  <div className="p-3 md:p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-[10px] font-bold text-gray-400 font-mono">{doc.code}</span>
+                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">{doc.currentRevision?.revisionNumber ?? "SEM REV"}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug min-h-[40px]">{doc.title}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${mapStatusClass(doc.status)}`}>
+                        {mapStatusLabel(doc.status)}
+                      </span>
+                      <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                        <GitBranch size={11} />
+                        <span>{doc.revisions.length}</span>
+                      </div>
+                    </div>
+                    {doc.category && (
+                      <p className="mt-2 text-[11px] text-gray-400 truncate">{doc.category.name}</p>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
         </div>
       )}
     </div>

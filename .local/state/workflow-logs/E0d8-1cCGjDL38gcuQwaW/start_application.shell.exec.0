@@ -1,0 +1,19 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0KUsuário criado: admin@tsea.com.br [administrador]
+Usuário criado: supervisor@tsea.com.br [supervisor]
+Usuário criado: operador@tsea.com.br [operador]
+3:13:23 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+3:22:42 AM [express] POST /api/login 200 in 69ms :: {"id":"c7a4dac3-66a6-4954-a736-99711da7ab9d","username":"supervisor@tsea.com.br","role":"supervisor"}
+3:22:42 AM [express] GET /api/me 200 in 2ms :: {"id":"c7a4dac3-66a6-4954-a736-99711da7ab9d","username":"supervisor@tsea.com.br","role":"supervisor"}
+3:23:13 AM [express] POST /api/logout 200 in 1ms :: {"message":"Logout realizado."}
+3:23:29 AM [express] POST /api/login 200 in 49ms :: {"id":"c7a4dac3-66a6-4954-a736-99711da7ab9d","username":"supervisor@tsea.com.br","role":"supervisor"}
+3:23:30 AM [express] GET /api/me 304 in 1ms :: {"id":"c7a4dac3-66a6-4954-a736-99711da7ab9d","username":"supervisor@tsea.com.br","role":"supervisor"}
+3:23:57 AM [express] POST /api/logout 200 in 2ms :: {"message":"Logout realizado."}
+3:23:59 AM [express] POST /api/login 200 in 61ms :: {"id":"a1006e30-721d-41b8-81c7-e75d93a67e63","username":"operador@tsea.com.br","role":"operador"}
+3:24:00 AM [express] GET /api/me 200 in 1ms :: {"id":"a1006e30-721d-41b8-81c7-e75d93a67e63","username":"operador@tsea.com.br","role":"operador"}
