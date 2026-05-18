@@ -14,6 +14,22 @@ import type { CreateDocumentInput, ListDocumentsQuery } from "./documents.types"
 import { memoryDb, nextMemoryId, type DocumentRecord } from "../../shared/database/memory";
 
 class DocumentService {
+  async getForApp(id: string) {
+    const document = await documentRepository.findById(id);
+    if (!document) {
+      throw new AppError("Document not found", 404);
+    }
+
+    return this.hydrateDocument(document);
+  }
+
+  async listByGroupIds(groupIds: string[]) {
+    const documents = (await documentRepository.list())
+      .filter((document) => groupIds.includes(document.groupId));
+
+    return documents.map((document) => this.hydrateDocument(document));
+  }
+
   async list(query: ListDocumentsQuery, userId: string, role: string) {
     const allowedGroupIds = role === "admin"
       ? null

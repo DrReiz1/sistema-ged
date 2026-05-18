@@ -1,5 +1,6 @@
 import { AppError } from "../../shared/errors/app-error";
 import { hashPassword } from "../../shared/utils/crypto";
+import { appIntegrationService } from "../app-integration/app-integration.service";
 import { logRepository } from "../logs/logs.repository";
 import { groupRepository } from "../groups/groups.repository";
 import { userRepository } from "./users.repository";
@@ -12,6 +13,8 @@ class UserService {
       users.map(async ({ passwordHash: _passwordHash, ...user }) => ({
         ...user,
         groups: await groupRepository.getUserGroupPermissions(user.id),
+        appProfile: await appIntegrationService.hydrateUserAppProfile(user.id),
+        appAccess: await appIntegrationService.hydrateUserAppAccess(user.id),
       })),
     );
   }
@@ -20,6 +23,11 @@ class UserService {
     const existing = await userRepository.findByEmail(input.email);
     if (existing) {
       throw new AppError("User already exists", 409);
+    }
+
+    const existingOperator = await userRepository.findByOperatorId(input.operatorId);
+    if (existingOperator) {
+      throw new AppError("Operator ID already exists", 409);
     }
 
     const passwordHash = await hashPassword(input.password);

@@ -14,6 +14,7 @@ export const usersTable = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role").notNull(),
+  operatorId: text("operator_id"),
   rfidTag: text("rfid_tag"),
   sector: text("sector").notNull(),
   active: boolean("active").notNull().default(true),
@@ -85,6 +86,61 @@ export const logsTable = pgTable("logs", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   ipAddress: text("ip_address"),
   device: text("device"),
+});
+
+export const employeesTable = pgTable("employees", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  operatorId: text("operator_id").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const nfcTagsTable = pgTable("nfc_tags", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull(),
+  nfcCode: text("nfc_code").notNull().unique(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const employeeDocumentPermissionsTable = pgTable("employee_document_permissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull(),
+  documentId: varchar("document_id").notNull(),
+  grantedUntil: timestamp("granted_until"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const employeeCategoryPermissionsTable = pgTable("employee_category_permissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull(),
+  categoryId: varchar("category_id").notNull(),
+  grantedUntil: timestamp("granted_until"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const appUserAccessTable = pgTable("app_user_access", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  groupId: varchar("group_id").notNull(),
+  accessUntil: timestamp("access_until").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const appAccessLogsTable = pgTable("app_access_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  rfidTagSnapshot: text("rfid_tag_snapshot").notNull(),
+  groupId: varchar("group_id"),
+  action: text("action").notNull(),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  ipAddress: text("ip_address"),
+  device: text("device"),
+  source: text("source").notNull().default("app"),
 });
 
 export const countersTable = pgTable("counters", {

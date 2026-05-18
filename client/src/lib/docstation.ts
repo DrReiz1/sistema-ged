@@ -57,6 +57,30 @@ export interface ApiLog {
   timestamp: string;
   ipAddress: string | null;
   device: string | null;
+  source?: "system" | "app";
+  groupId?: string | null;
+}
+
+export interface ApiAppProfile {
+  employeeActive: boolean;
+  nfcCode: string | null;
+  nfcActive: boolean;
+}
+
+export interface ApiAppUserAccess {
+  id: string;
+  userId: string;
+  categoryId: string;
+  accessUntil: string | null;
+  enabled: boolean;
+  createdAt: string;
+  category: ApiCategory | null;
+}
+
+export interface ApiAppValidationResponse {
+  userId: string;
+  name: string;
+  operatorId: string;
 }
 
 export interface ApiUser {
@@ -64,11 +88,14 @@ export interface ApiUser {
   name: string;
   email: string;
   role: "admin" | "supervisor" | "operator";
+  operatorId: string;
   rfidTag: string | null;
   sector: string;
   active: boolean;
   createdAt: string;
   groups: ApiGroup[];
+  appProfile: ApiAppProfile;
+  appAccess: ApiAppUserAccess[];
 }
 
 export function formatDate(value?: string | null): string {

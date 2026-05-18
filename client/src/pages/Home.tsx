@@ -15,6 +15,10 @@ const actionColor: Record<string, string> = {
   exclusao: "bg-red-100 text-red-700",
   download: "bg-amber-100 text-amber-700",
   visualizacao: "bg-indigo-100 text-indigo-700",
+  app_access_granted: "bg-cyan-100 text-cyan-700",
+  app_access_denied: "bg-rose-100 text-rose-700",
+  app_documents_viewed: "bg-lime-100 text-lime-700",
+  app_module_selected: "bg-orange-100 text-orange-700",
 };
 
 const actionLabel: Record<string, string> = {
@@ -36,6 +40,10 @@ const actionLabel: Record<string, string> = {
   conclusao_lote: "Conclusão de lote registrada",
   preferencias_interface: "Preferências salvas",
   bootstrap: "Base inicial carregada",
+  app_access_granted: "Acesso ao app liberado",
+  app_access_denied: "Acesso ao app recusado",
+  app_documents_viewed: "Documentos do app consultados",
+  app_module_selected: "Módulo do app selecionado",
 };
 
 export function Home() {
@@ -80,10 +88,6 @@ export function Home() {
     if (search.trim()) {
       navigate(`/documents?q=${encodeURIComponent(search)}`);
     }
-  };
-
-  const resolveActorName = (log: ApiLog) => {
-    return log.userName ?? "Usuário do sistema";
   };
 
   return (
@@ -220,10 +224,17 @@ export function Home() {
                 <div key={log.id} className="px-5 py-3.5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-800">{resolveActorName(log)}</p>
-                      <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${actionColor[log.action] ?? "bg-gray-100 text-gray-600"}`}>
-                        {actionLabel[log.action] ?? "Ação registrada"}
-                      </span>
+                      <p className="truncate text-sm font-semibold text-gray-800">{log.userName ?? "Usuário do sistema"}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${actionColor[log.action] ?? "bg-gray-100 text-gray-600"}`}>
+                          {actionLabel[log.action] ?? "Ação registrada"}
+                        </span>
+                        {log.source === "app" && (
+                          <span className="inline-flex rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-bold text-cyan-700">
+                            App
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <span className="mt-0.5 flex-shrink-0 text-[10px] text-gray-400">{formatDate(log.timestamp)}</span>
                   </div>

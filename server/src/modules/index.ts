@@ -7,6 +7,7 @@ import { tagRoutes } from "./tags/tags.routes";
 import { categoryRoutes } from "./categories/categories.routes";
 import { logRoutes } from "./logs/logs.routes";
 import { groupRoutes } from "./groups/groups.routes";
+import { appIntegrationRoutes } from "./app-integration/app-integration.routes";
 
 export function registerModuleRoutes(app: Express): void {
   app.use("/api/auth", authRoutes);
@@ -18,4 +19,5 @@ export function registerModuleRoutes(app: Express): void {
   app.use("/api/categories", categoryRoutes);
   app.use("/api/logs", logRoutes);
   app.use("/api/groups", groupRoutes);
+  app.use("/api/app", appIntegrationRoutes);
 }

@@ -14,6 +14,7 @@ import {
   LogIn,
   LogOut,
   Search,
+  Smartphone,
   Tag,
   Trash2,
   Upload,
@@ -44,6 +45,10 @@ const actionMeta: Record<string, { label: string; icon: React.ReactNode; bg: str
   group_create: { label: "Novo grupo", icon: <Lock size={14} />, bg: "bg-orange-50", color: "text-orange-600" },
   conclusao_lote: { label: "Conclusão de lote", icon: <GitBranch size={14} />, bg: "bg-emerald-50", color: "text-emerald-700" },
   preferencias_interface: { label: "Preferências", icon: <Edit3 size={14} />, bg: "bg-indigo-50", color: "text-indigo-700" },
+  app_access_granted: { label: "Acesso ao app liberado", icon: <Smartphone size={14} />, bg: "bg-cyan-50", color: "text-cyan-700" },
+  app_access_denied: { label: "Acesso ao app recusado", icon: <AlertTriangle size={14} />, bg: "bg-rose-50", color: "text-rose-700" },
+  app_documents_viewed: { label: "Documentos do app consultados", icon: <Smartphone size={14} />, bg: "bg-lime-50", color: "text-lime-700" },
+  app_module_selected: { label: "Módulo do app selecionado", icon: <Smartphone size={14} />, bg: "bg-orange-50", color: "text-orange-700" },
 };
 
 export function History() {
@@ -75,6 +80,7 @@ export function History() {
       document?.code ?? "",
       document?.title ?? "",
       entry.action,
+      entry.source ?? "",
       isAdmin ? (entry.device ?? "") : "",
       isAdmin ? (entry.ipAddress ?? "") : "",
     ].join(" ").toLowerCase();
@@ -148,6 +154,9 @@ export function History() {
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     <span className="text-base font-bold text-gray-800">{actorName}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${entry.source === "app" ? "bg-cyan-50 text-cyan-700" : "bg-gray-100 text-gray-600"}`}>
+                      {entry.source === "app" ? "Origem: App" : "Origem: GED"}
+                    </span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

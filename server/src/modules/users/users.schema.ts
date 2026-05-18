@@ -5,6 +5,7 @@ export const createUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   role: z.enum(["operator", "supervisor", "admin"]),
+  operatorId: z.string().min(3),
   rfidTag: z.string().optional(),
   sector: z.string().min(2),
   active: z.boolean().optional(),

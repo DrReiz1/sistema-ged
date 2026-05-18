@@ -8,6 +8,7 @@ export interface UserRecord {
   email: string;
   passwordHash: string;
   role: UserRole;
+  operatorId: string;
   rfidTag: string | null;
   sector: string;
   active: boolean;
@@ -81,6 +82,61 @@ export interface LogRecord {
   device: string | null;
 }
 
+export interface EmployeeRecord {
+  id: string;
+  fullName: string;
+  operatorId: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface NfcTagRecord {
+  id: string;
+  employeeId: string;
+  nfcCode: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface EmployeeDocumentPermissionRecord {
+  id: string;
+  employeeId: string;
+  documentId: string;
+  grantedUntil: Date | null;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface EmployeeCategoryPermissionRecord {
+  id: string;
+  employeeId: string;
+  categoryId: string;
+  grantedUntil: Date | null;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface AppUserAccessRecord {
+  id: string;
+  userId: string;
+  groupId: string;
+  accessUntil: Date;
+  enabled: boolean;
+  createdAt: Date;
+}
+
+export interface AppAccessLogRecord {
+  id: string;
+  userId: string;
+  rfidTagSnapshot: string;
+  groupId: string | null;
+  action: string;
+  timestamp: Date;
+  ipAddress: string | null;
+  device: string | null;
+  source: "app";
+}
+
 export interface CounterRecord {
   id: string;
   scope: string;
@@ -97,6 +153,12 @@ export const memoryDb = {
   documentTags: [] as DocumentTagRecord[],
   userGroupPermissions: [] as UserGroupPermissionRecord[],
   logs: [] as LogRecord[],
+  employees: [] as EmployeeRecord[],
+  nfcTags: [] as NfcTagRecord[],
+  employeeDocumentPermissions: [] as EmployeeDocumentPermissionRecord[],
+  employeeCategoryPermissions: [] as EmployeeCategoryPermissionRecord[],
+  appUserAccess: [] as AppUserAccessRecord[],
+  appAccessLogs: [] as AppAccessLogRecord[],
   counters: [] as CounterRecord[],
 };
 
@@ -110,6 +172,12 @@ export function clearMemoryDatabase() {
   memoryDb.documentTags = [];
   memoryDb.userGroupPermissions = [];
   memoryDb.logs = [];
+  memoryDb.employees = [];
+  memoryDb.nfcTags = [];
+  memoryDb.employeeDocumentPermissions = [];
+  memoryDb.employeeCategoryPermissions = [];
+  memoryDb.appUserAccess = [];
+  memoryDb.appAccessLogs = [];
   memoryDb.counters = [];
 }
 

@@ -5,6 +5,7 @@ export interface CreateUserInput {
   email: string;
   password: string;
   role: UserRole;
+  operatorId: string;
   rfidTag?: string;
   sector: string;
   active?: boolean;
