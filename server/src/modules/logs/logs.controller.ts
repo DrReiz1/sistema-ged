@@ -2,8 +2,11 @@ import type { Request, Response } from "express";
 import { logService } from "./logs.service";
 
 class LogController {
-  async list(_req: Request, res: Response) {
-    const logs = await logService.list();
+  async list(req: Request, res: Response) {
+    const logs = await logService.list({
+      userId: req.auth!.userId,
+      role: req.auth!.role,
+    });
     res.status(200).json(logs);
   }
 

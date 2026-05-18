@@ -50,6 +50,7 @@ export interface ApiDocument {
 export interface ApiLog {
   id: string;
   userId: string;
+  userName?: string | null;
   action: string;
   documentId: string | null;
   revisionId: string | null;
