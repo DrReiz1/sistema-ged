@@ -15,6 +15,18 @@ class DocumentController {
       return "application/dxf";
     }
 
+    if (fileType === "png") {
+      return "image/png";
+    }
+
+    if (fileType === "jpg") {
+      return "image/jpeg";
+    }
+
+    if (fileType === "webp") {
+      return "image/webp";
+    }
+
     return "application/octet-stream";
   }
 

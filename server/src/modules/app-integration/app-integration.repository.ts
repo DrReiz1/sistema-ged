@@ -9,12 +9,22 @@ import {
   type NfcTagRecord,
 } from "../../shared/database/memory";
 import {
+  appSourceDocumentsTable,
+  appSourceEmployeeDocumentPermissionsTable,
+  appSourceEmployeesTable,
+  appSourceNfcTagsTable,
   appAccessLogsTable,
   employeeCategoryPermissionsTable,
   employeeDocumentPermissionsTable,
   employeesTable,
   nfcTagsTable,
 } from "../../shared/database/schema";
+import type {
+  AppSourceDocumentInput,
+  AppSourceEmployeeDocumentPermissionInput,
+  AppSourceEmployeeInput,
+  AppSourceNfcTagInput,
+} from "./app-integration.types";
 
 class AppIntegrationRepository {
   async listEmployees() {
@@ -254,6 +264,43 @@ class AppIntegrationRepository {
 
     memoryDb.appAccessLogs.push(log);
     return log;
+  }
+
+  async replaceAppSourceSnapshot(input: {
+    employees: AppSourceEmployeeInput[];
+    nfcTags: AppSourceNfcTagInput[];
+    documents: AppSourceDocumentInput[];
+    permissions: AppSourceEmployeeDocumentPermissionInput[];
+  }) {
+    memoryDb.appSourceEmployees = input.employees.map((item) => ({ ...item }));
+    memoryDb.appSourceNfcTags = input.nfcTags.map((item) => ({ ...item }));
+    memoryDb.appSourceDocuments = input.documents.map((item) => ({ ...item }));
+    memoryDb.appSourceEmployeeDocumentPermissions = input.permissions.map((item) => ({ ...item }));
+
+    if (!db) {
+      return;
+    }
+
+    await db.delete(appSourceEmployeeDocumentPermissionsTable);
+    await db.delete(appSourceNfcTagsTable);
+    await db.delete(appSourceDocumentsTable);
+    await db.delete(appSourceEmployeesTable);
+
+    if (input.employees.length > 0) {
+      await db.insert(appSourceEmployeesTable).values(input.employees);
+    }
+
+    if (input.nfcTags.length > 0) {
+      await db.insert(appSourceNfcTagsTable).values(input.nfcTags);
+    }
+
+    if (input.documents.length > 0) {
+      await db.insert(appSourceDocumentsTable).values(input.documents);
+    }
+
+    if (input.permissions.length > 0) {
+      await db.insert(appSourceEmployeeDocumentPermissionsTable).values(input.permissions);
+    }
   }
 }
 

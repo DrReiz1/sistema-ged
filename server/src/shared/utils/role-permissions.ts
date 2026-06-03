@@ -2,7 +2,15 @@ import type { UserRole } from "../types/auth.types";
 
 const rolePermissionsMap: Record<UserRole, string[]> = {
   operator: ["documents:read", "groups:read", "logs:create"],
-  supervisor: ["documents:read", "groups:read", "logs:create", "logs:read", "revisions:read", "revisions:create"],
+  supervisor: [
+    "documents:read",
+    "documents:create",
+    "groups:read",
+    "logs:create",
+    "logs:read",
+    "revisions:read",
+    "revisions:create",
+  ],
   admin: [
     "documents:read",
     "documents:create",

@@ -88,6 +88,14 @@ export const logsTable = pgTable("logs", {
   device: text("device"),
 });
 
+export const revokedTokensTable = pgTable("revoked_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: text("token").notNull().unique(),
+  userId: varchar("user_id").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  revokedAt: timestamp("revoked_at").notNull().defaultNow(),
+});
+
 export const employeesTable = pgTable("employees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   fullName: text("full_name").notNull(),
@@ -141,6 +149,41 @@ export const appAccessLogsTable = pgTable("app_access_logs", {
   ipAddress: text("ip_address"),
   device: text("device"),
   source: text("source").notNull().default("app"),
+});
+
+export const appSourceEmployeesTable = pgTable("app_source_employees", {
+  id: varchar("id").primaryKey(),
+  fullName: text("full_name").notNull(),
+  operatorId: text("operator_id").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull(),
+});
+
+export const appSourceNfcTagsTable = pgTable("app_source_nfc_tags", {
+  id: varchar("id").primaryKey(),
+  employeeId: varchar("employee_id").notNull(),
+  nfcCode: text("nfc_code").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull(),
+});
+
+export const appSourceDocumentsTable = pgTable("app_source_documents", {
+  id: varchar("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  viewerUrl: text("viewer_url").notNull(),
+  fileType: text("file_type").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull(),
+});
+
+export const appSourceEmployeeDocumentPermissionsTable = pgTable("app_source_employee_document_permissions", {
+  id: varchar("id").primaryKey(),
+  employeeId: varchar("employee_id").notNull(),
+  documentId: varchar("document_id").notNull(),
+  grantedUntil: timestamp("granted_until"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull(),
 });
 
 export const countersTable = pgTable("counters", {

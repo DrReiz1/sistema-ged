@@ -8,6 +8,7 @@ import {
   CheckCircle,
   CheckSquare,
   Download,
+  FileImage,
   FileText,
   GitBranch,
   Hash,
@@ -21,13 +22,14 @@ import { apiRequest, buildAuthenticatedUrl, fetchJson, getAuthToken, queryClient
 import { type ApiDocument, type ApiRevision, formatDate, mapStatusClass, mapStatusLabel } from "@/lib/docstation";
 import { getRole, roleConfig } from "@/lib/roles";
 
-const ALLOWED_EXTENSIONS = [".pdf", ".dwg", ".dxf"];
+const ALLOWED_EXTENSIONS = [".pdf", ".dwg", ".dxf", ".png", ".jpg", ".jpeg", ".webp"];
 const MAX_SIZE_MB = 20;
+const INLINE_IMAGE_TYPES = new Set(["png", "jpg", "jpeg", "webp"]);
 
 function validateRevisionFile(file: File) {
   const extension = `.${file.name.split(".").pop()?.toLowerCase() ?? ""}`;
   if (!ALLOWED_EXTENSIONS.includes(extension)) {
-    return "Envie apenas arquivos PDF, DWG ou DXF.";
+    return "Envie apenas arquivos PDF, DWG, DXF, PNG, JPG ou WEBP.";
   }
 
   if (file.size > MAX_SIZE_MB * 1024 * 1024) {
@@ -137,7 +139,9 @@ export function DocumentView() {
   const currentVersion = doc.currentRevision;
   const previewUrl = buildAuthenticatedUrl(`/api/documents/${doc.id}/preview`);
   const currentDownloadUrl = buildAuthenticatedUrl(`/api/documents/${doc.id}/download`);
-  const canPreviewInline = currentVersion?.fileType === "pdf";
+  const currentFileType = currentVersion?.fileType?.toLowerCase() ?? "";
+  const canPreviewPdf = currentFileType === "pdf";
+  const canPreviewImage = INLINE_IMAGE_TYPES.has(currentFileType);
 
   const handleBatchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -330,12 +334,12 @@ export function DocumentView() {
             <label className="flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-blue-300 bg-white px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-gray-700">{revisionFile?.name ?? "Selecionar arquivo"}</p>
-                <p className="text-xs text-gray-400">Aceita PDF, DWG e DXF</p>
+                <p className="text-xs text-gray-400">Aceita PDF, DWG, DXF, PNG, JPG e WEBP</p>
               </div>
               <Upload size={16} className="text-blue-600" />
               <input
                 type="file"
-                accept=".pdf,.dwg,.dxf"
+                accept=".pdf,.dwg,.dxf,.png,.jpg,.jpeg,.webp"
                 className="hidden"
                 onChange={(event) => handleRevisionFile(event.target.files?.[0] ?? null)}
               />
@@ -403,7 +407,7 @@ export function DocumentView() {
             <div className="flex items-start justify-between border-b border-gray-100 px-4 py-3 md:px-5 md:py-4">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 md:h-11 md:w-11">
-                  <FileText size={18} className="text-[#FF201A]" />
+                  {canPreviewImage ? <FileImage size={18} className="text-[#FF201A]" /> : <FileText size={18} className="text-[#FF201A]" />}
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -424,7 +428,7 @@ export function DocumentView() {
             </div>
 
             <div className="m-3 md:m-4">
-              {canPreviewInline ? (
+              {canPreviewPdf ? (
                 <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
                   <object
                     data={previewUrl}
@@ -448,12 +452,20 @@ export function DocumentView() {
                     </div>
                   </object>
                 </div>
+              ) : canPreviewImage ? (
+                <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                  <img
+                    src={previewUrl}
+                    alt={`Prévia do documento ${doc.code}`}
+                    className="max-h-[520px] w-full object-contain bg-white"
+                  />
+                </div>
               ) : (
                 <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 text-center">
                   <FileText size={34} className="text-gray-300" />
                   <p className="mt-4 text-sm font-medium text-gray-700">Prévia indisponível para arquivos {currentVersion?.fileType?.toUpperCase()}.</p>
                   <p className="mt-1 max-w-md text-xs text-gray-500">
-                    O download continua disponível normalmente. A pré-visualização inline foi mantida para PDFs.
+                    O download continua disponível normalmente. A prévia inline foi mantida para PDF e imagem.
                   </p>
                   <button
                     type="button"
@@ -585,7 +597,7 @@ export function DocumentView() {
           <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
             <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-3">
               <Shield size={13} className="text-gray-400" />
-              <h2 className="text-sm font-semibold text-gray-700">Integridade</h2>
+              <h2 className="text-sm font-semibold text-gray-700">Controle técnico</h2>
             </div>
             <div className="space-y-3 p-5">
               <div>
@@ -597,7 +609,7 @@ export function DocumentView() {
                 <p className="mt-1 break-all font-mono text-[11px] text-gray-500">{currentVersion?.originalFileName ?? currentVersion?.fileUrl ?? "-"}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wide text-gray-400">Enviado por</p>
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">Publicada em</p>
                 <p className="mt-1 text-xs text-gray-600">
                   {currentVersion?.uploadedByName ?? currentVersion?.uploadedBy ?? "-"} · {formatDate(currentVersion?.createdAt)}
                 </p>

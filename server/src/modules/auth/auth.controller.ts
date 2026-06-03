@@ -39,6 +39,7 @@ class AuthController {
       userId: req.auth!.userId,
       ipAddress: req.ip,
       device: req.headers["user-agent"],
+      token: req.authToken!,
     });
     res.status(200).json(response);
   }

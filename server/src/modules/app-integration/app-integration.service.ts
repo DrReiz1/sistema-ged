@@ -1,4 +1,5 @@
 import { AppError } from "../../shared/errors/app-error";
+import { appSourceDb, appSourceSupabase } from "../../shared/database/app-source-client";
 import { memoryDb } from "../../shared/database/memory";
 import { documentService } from "../documents/documents.service";
 import { logRepository } from "../logs/logs.repository";
@@ -161,6 +162,149 @@ class AppIntegrationService {
       ipAddress: input.ipAddress ?? null,
       device: input.device ?? null,
     });
+  }
+
+  async importSourceSnapshot(actorUserId: string) {
+    if (!appSourceSupabase && !appSourceDb) {
+      return {
+        configured: false,
+        employees: 0,
+        nfcTags: 0,
+        documents: 0,
+        permissions: 0,
+      };
+    }
+
+    const source = await this.readSourceSnapshot();
+    const { employees, nfcTags, documents, permissions } = source;
+
+    await appIntegrationRepository.replaceAppSourceSnapshot({
+      employees,
+      nfcTags,
+      documents,
+      permissions,
+    });
+
+    await logRepository.create({
+      userId: actorUserId,
+      action: "alteracao",
+      documentId: null,
+      revisionId: null,
+      timestamp: new Date(),
+      ipAddress: null,
+      device: "app-source-import",
+    });
+
+    return {
+      configured: true,
+      employees: employees.length,
+      nfcTags: nfcTags.length,
+      documents: documents.length,
+      permissions: permissions.length,
+    };
+  }
+
+  private async readSourceSnapshot() {
+    if (appSourceSupabase) {
+      const [
+        employeesResponse,
+        nfcTagsResponse,
+        documentsResponse,
+        permissionsResponse,
+      ] = await Promise.all([
+        appSourceSupabase.from("employees").select("id, full_name, operator_id, is_active, created_at"),
+        appSourceSupabase.from("nfc_tags").select("id, employee_id, nfc_code, is_active, created_at"),
+        appSourceSupabase.from("documents").select("id, title, description, viewer_url, file_type, is_active, created_at"),
+        appSourceSupabase.from("employee_document_permissions").select("id, employee_id, document_id, granted_until, is_active, created_at"),
+      ]);
+
+      const sourceError = employeesResponse.error ?? nfcTagsResponse.error ?? documentsResponse.error ?? permissionsResponse.error;
+      if (sourceError) {
+        throw new AppError(
+          "Failed to read source APP Supabase. Confirm a valid read credential for the source project.",
+          502,
+          sourceError.message,
+        );
+      }
+
+      return {
+        employees: (employeesResponse.data ?? []).map((row) => ({
+          id: row.id,
+          fullName: row.full_name,
+          operatorId: row.operator_id,
+          isActive: row.is_active,
+          createdAt: new Date(row.created_at),
+        })),
+        nfcTags: (nfcTagsResponse.data ?? []).map((row) => ({
+          id: row.id,
+          employeeId: row.employee_id,
+          nfcCode: row.nfc_code,
+          isActive: row.is_active,
+          createdAt: new Date(row.created_at),
+        })),
+        documents: (documentsResponse.data ?? []).map((row) => ({
+          id: row.id,
+          title: row.title,
+          description: row.description ?? "",
+          viewerUrl: row.viewer_url,
+          fileType: row.file_type,
+          isActive: row.is_active,
+          createdAt: new Date(row.created_at),
+        })),
+        permissions: (permissionsResponse.data ?? []).map((row) => ({
+          id: row.id,
+          employeeId: row.employee_id,
+          documentId: row.document_id,
+          grantedUntil: row.granted_until ? new Date(row.granted_until) : null,
+          isActive: row.is_active,
+          createdAt: new Date(row.created_at),
+        })),
+      };
+    }
+
+    if (appSourceDb) {
+      const [employeesResult, nfcTagsResult, documentsResult, permissionsResult] = await Promise.all([
+        appSourceDb.query('select id, full_name, operator_id, is_active, created_at from public.employees'),
+        appSourceDb.query('select id, employee_id, nfc_code, is_active, created_at from public.nfc_tags'),
+        appSourceDb.query('select id, title, description, viewer_url, file_type, is_active, created_at from public.documents'),
+        appSourceDb.query('select id, employee_id, document_id, granted_until, is_active, created_at from public.employee_document_permissions'),
+      ]);
+
+      return {
+        employees: employeesResult.rows.map((row) => ({
+          id: row.id,
+          fullName: row.full_name,
+          operatorId: row.operator_id,
+          isActive: row.is_active,
+          createdAt: new Date(row.created_at),
+        })),
+        nfcTags: nfcTagsResult.rows.map((row) => ({
+          id: row.id,
+          employeeId: row.employee_id,
+          nfcCode: row.nfc_code,
+          isActive: row.is_active,
+          createdAt: new Date(row.created_at),
+        })),
+        documents: documentsResult.rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          description: row.description ?? "",
+          viewerUrl: row.viewer_url,
+          fileType: row.file_type,
+          isActive: row.is_active,
+          createdAt: new Date(row.created_at),
+        })),
+        permissions: permissionsResult.rows.map((row) => ({
+          id: row.id,
+          employeeId: row.employee_id,
+          documentId: row.document_id,
+          grantedUntil: row.granted_until ? new Date(row.granted_until) : null,
+          isActive: row.is_active,
+          createdAt: new Date(row.created_at),
+        })),
+      };
+    }
+    throw new AppError("APP source is not configured", 500);
   }
 
   async hydrateUserAppProfile(userId: string) {

@@ -13,6 +13,7 @@ import {
   groupsTable,
   logsTable,
   nfcTagsTable,
+  revokedTokensTable,
   revisionsTable,
   tagsTable,
   userGroupPermissionsTable,
@@ -426,6 +427,7 @@ async function hydrateMemoryFromDatabase() {
     documentTags,
     userGroupPermissions,
     logs,
+    revokedTokens,
     employees,
     nfcTags,
     employeeDocumentPermissions,
@@ -443,6 +445,7 @@ async function hydrateMemoryFromDatabase() {
     db.select().from(documentTagsTable),
     db.select().from(userGroupPermissionsTable),
     db.select().from(logsTable),
+    db.select().from(revokedTokensTable).catch(() => []),
     db.select().from(employeesTable),
     db.select().from(nfcTagsTable),
     db.select().from(employeeDocumentPermissionsTable),
@@ -501,6 +504,11 @@ async function hydrateMemoryFromDatabase() {
     ipAddress: row.ipAddress ?? null,
     device: row.device ?? null,
     timestamp: new Date(row.timestamp),
+  }));
+  memoryDb.revokedTokens = revokedTokens.map((row) => ({
+    ...row,
+    expiresAt: new Date(row.expiresAt),
+    revokedAt: new Date(row.revokedAt),
   }));
   memoryDb.employees = employees.map((row) => ({
     ...row,

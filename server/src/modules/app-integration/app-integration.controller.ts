@@ -42,6 +42,11 @@ class AppIntegrationController {
       source: log.source,
     });
   }
+
+  async importSourceSnapshot(req: Request, res: Response) {
+    const result = await appIntegrationService.importSourceSnapshot(req.auth!.userId);
+    res.status(200).json(result);
+  }
 }
 
 export const appIntegrationController = new AppIntegrationController();

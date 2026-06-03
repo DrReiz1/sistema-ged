@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Tag, Bell, Shield, Database, Save, FileText, Plus } from "lucide-react";
+import { Bell, Database, FileText, Plus, Save, Settings as SettingsIcon, Shield, Tag } from "lucide-react";
 import { apiRequest, fetchJson, queryClient } from "@/lib/queryClient";
 import { type ApiCategory, type ApiTag } from "@/lib/docstation";
 
@@ -9,20 +9,20 @@ const sections = [
   { id: "geral", label: "Geral", icon: SettingsIcon },
   { id: "tipos", label: "Categorias", icon: FileText },
   { id: "tags", label: "Etiquetas", icon: Tag },
-  { id: "seguranca", label: "Segurança", icon: Shield },
+  { id: "seguranca", label: "Seguranca", icon: Shield },
   { id: "notificacoes", label: "Notificações", icon: Bell },
   { id: "armazenamento", label: "Armazenamento", icon: Database },
 ];
 
 function FieldRow({ label, defaultValue, type = "text", testId }: { label: string; defaultValue: string; type?: string; testId?: string }) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-semibold text-gray-600">{label}</label>
+    <div className="space-y-2">
+      <label className="text-sm font-semibold text-gray-700">{label}</label>
       <input
         defaultValue={defaultValue}
         type={type}
         data-testid={testId}
-        className="w-full h-10 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A]"
+        className="operator-action h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-base text-gray-700 focus:border-[#FF201A] focus:outline-none"
       />
     </div>
   );
@@ -33,6 +33,7 @@ export function Settings() {
   const [newTag, setNewTag] = useState("");
   const [newTypeName, setNewTypeName] = useState("");
   const [newTypePrefix, setNewTypePrefix] = useState("");
+  const [importSummary, setImportSummary] = useState<null | { configured: boolean; employees: number; nfcTags: number; documents: number; permissions: number }>(null);
 
   const { data: tags = [] } = useQuery<ApiTag[]>({
     queryKey: ["/api/tags"],
@@ -80,139 +81,164 @@ export function Settings() {
     },
   });
 
-  return (
-    <div className="space-y-4 md:space-y-0 md:flex md:gap-5">
-      <div className="md:hidden">
-        <select
-          value={activeSection}
-          onChange={(event) => setActiveSection(event.target.value)}
-          className="w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm focus:outline-none focus:border-[#FF201A]"
-        >
-          {sections.map(({ id, label }) => (
-            <option key={id} value={id}>{label}</option>
-          ))}
-        </select>
-      </div>
+  const importAppSourceMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/app/source/import");
+      return response.json() as Promise<{ configured: boolean; employees: number; nfcTags: number; documents: number; permissions: number }>;
+    },
+    onSuccess: (result) => {
+      setImportSummary(result);
+    },
+  });
 
-      <aside className="hidden md:block w-52 flex-shrink-0">
-        <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-2">
-          <nav className="space-y-0.5">
+  return (
+    <div className="mx-auto max-w-6xl space-y-6 md:flex md:gap-6 md:space-y-0">
+      <aside className="md:w-64 md:flex-shrink-0">
+        <div className="operator-card rounded-[18px] border border-gray-200 p-3">
+          <div className="mb-3 px-3 pt-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">Configurações</p>
+            <h1 className="mt-2 text-2xl font-bold text-gray-900">Ajustes</h1>
+          </div>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-1">
             {sections.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveSection(id)}
                 data-testid={`settings-nav-${id}`}
-                className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm transition-colors ${
+                className={`operator-action flex min-h-[56px] items-center gap-3 rounded-xl px-4 text-left text-sm transition-colors ${
                   activeSection === id ? "bg-[#FF201A]/10 font-semibold text-[#FF201A]" : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                 }`}
               >
-                <Icon size={15} /> {label}
+                <Icon size={18} /> {label}
               </button>
             ))}
-          </nav>
+          </div>
         </div>
       </aside>
 
-      <motion.div key={activeSection} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.15 }} className="flex-1 min-w-0">
+      <motion.div key={activeSection} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
         {activeSection === "geral" && (
-          <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
-            <div className="border-b border-gray-100 px-5 py-4">
-              <h2 className="text-sm font-semibold text-gray-700">Configurações Gerais</h2>
+          <div className="operator-card rounded-[18px] border border-gray-200 p-5">
+            <div className="mb-5">
+              <h2 className="text-xl font-semibold text-gray-800">Geral</h2>
+              <p className="mt-1 text-sm text-gray-500">Ajustes basicos de funcionamento.</p>
             </div>
-            <div className="space-y-4 p-4 md:p-5">
-              <FieldRow label="Nome da Organização" defaultValue="TSEA Energia" testId="input-org-name" />
-              <FieldRow label="Nome do Sistema" defaultValue="TSEA GED" />
-              <FieldRow label="Idioma" defaultValue="Português (Brasil)" />
-              <FieldRow label="Fuso Horário" defaultValue="America/Sao_Paulo (UTC-3)" />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FieldRow label="Limite de Upload (MB)" defaultValue="100" type="number" />
-                <FieldRow label="Expiração de Sessão (horas)" defaultValue="8" type="number" />
-              </div>
-              <div className="flex justify-end pt-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <FieldRow label="Idioma" defaultValue="Portugues (Brasil)" />
+              <FieldRow label="Fuso horario" defaultValue="America/Sao_Paulo (UTC-3)" />
+              <FieldRow label="Limite de upload (MB)" defaultValue="100" type="number" />
+              <FieldRow label="Expiracao de sessao (horas)" defaultValue="8" type="number" />
+            </div>
+
+            <div className="rounded-[16px] border border-gray-200 bg-gray-50 p-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-base font-semibold text-gray-800">Importar base do app</p>
+                  <p className="mt-1 text-sm text-gray-500">Le o Supabase do app e espelha os dados no banco do GED.</p>
+                </div>
                 <button
-                  onClick={() => saveSettingsMutation.mutate()}
-                  className="flex items-center gap-2 rounded-xl bg-[#FF201A] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#e01a14] transition-colors border border-[#bf0f0c]"
-                  data-testid="button-save-settings"
+                  onClick={() => importAppSourceMutation.mutate()}
+                  className="operator-action h-12 rounded-xl border border-blue-200 bg-blue-50 px-5 text-base font-semibold text-blue-700 hover:bg-blue-100"
+                  type="button"
                 >
-                  <Save size={14} /> Salvar Alterações
+                  {importAppSourceMutation.isPending ? "Importando..." : "Importar agora"}
                 </button>
               </div>
+              {importSummary && (importSummary.configured ? (
+                <p className="mt-3 text-sm text-gray-600">
+                  Importados: {importSummary.employees} funcionários, {importSummary.nfcTags} tags NFC, {importSummary.documents} documentos e {importSummary.permissions} permissões.
+                </p>
+              ) : (
+                <p className="mt-3 text-sm text-amber-700">
+                  A origem externa do app ainda nÃ£o foi configurada no ambiente atual.
+                </p>
+              ))}
+              {importAppSourceMutation.isError && (
+                <p className="mt-3 text-sm text-red-600">
+                  Não foi possível importar a base do app. Verifique as credenciais de leitura da origem.
+                </p>
+              )}
+            </div>
+
+            <div className="mt-5 flex justify-end">
+              <button
+                onClick={() => saveSettingsMutation.mutate()}
+                className="operator-action flex h-12 items-center gap-2 rounded-xl border border-[#bf0f0c] bg-[#FF201A] px-5 text-base font-semibold text-white hover:bg-[#e01a14]"
+                data-testid="button-save-settings"
+              >
+                <Save size={16} /> Salvar
+              </button>
             </div>
           </div>
         )}
 
         {activeSection === "tipos" && (
-          <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-4">
-              <FileText size={14} className="text-gray-400" />
-              <h2 className="text-sm font-semibold text-gray-700">Categorias de Documento</h2>
+          <div className="operator-card rounded-[18px] border border-gray-200 p-5">
+            <div className="mb-5">
+              <h2 className="text-xl font-semibold text-gray-800">Categorias</h2>
+              <p className="mt-1 text-sm text-gray-500">Cadastre novos tipos de documentos.</p>
             </div>
-            <div className="space-y-3 p-4 md:p-5">
-              <div className="grid grid-cols-[1fr_120px_40px] gap-2">
-                <input
-                  value={newTypeName}
-                  onChange={(event) => setNewTypeName(event.target.value)}
-                  placeholder="Ex.: Relatório de Inspeção"
-                  className="h-10 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-[#FF201A]"
-                />
-                <input
-                  value={newTypePrefix}
-                  onChange={(event) => setNewTypePrefix(event.target.value)}
-                  placeholder="REL"
-                  className="h-10 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm uppercase focus:outline-none focus:border-[#FF201A]"
-                />
-                <button onClick={() => createCategoryMutation.mutate()} className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FF201A] text-white hover:bg-[#e01a14] transition-colors">
-                  <Plus size={15} />
-                </button>
-              </div>
-              <div className="space-y-2">
-                {types.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/60 px-4 py-3">
-                    <span className="text-sm text-gray-700 truncate mr-2">{item.name} <span className="font-mono text-xs text-[#FF201A]">{item.prefix}</span></span>
-                  </div>
-                ))}
-              </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.4fr_160px_auto]">
+              <input
+                value={newTypeName}
+                onChange={(event) => setNewTypeName(event.target.value)}
+                placeholder="Nome da categoria"
+                className="operator-action h-12 rounded-xl border border-gray-200 bg-gray-50 px-4 text-base focus:border-[#FF201A] focus:outline-none"
+              />
+              <input
+                value={newTypePrefix}
+                onChange={(event) => setNewTypePrefix(event.target.value)}
+                placeholder="SIG"
+                className="operator-action h-12 rounded-xl border border-gray-200 bg-gray-50 px-4 text-base uppercase focus:border-[#FF201A] focus:outline-none"
+              />
+              <button onClick={() => createCategoryMutation.mutate()} className="operator-action flex h-12 items-center justify-center rounded-xl bg-[#FF201A] px-5 text-white hover:bg-[#e01a14]">
+                <Plus size={18} />
+              </button>
+            </div>
+            <div className="mt-5 space-y-3">
+              {types.map((item) => (
+                <div key={item.id} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-4">
+                  <p className="text-base font-semibold text-gray-800">{item.name}</p>
+                  <p className="mt-1 text-sm font-mono text-[#FF201A]">{item.prefix}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {activeSection === "tags" && (
-          <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
-            <div className="border-b border-gray-100 px-5 py-4">
-              <h2 className="text-sm font-semibold text-gray-700">Gerenciar Etiquetas</h2>
+          <div className="operator-card rounded-[18px] border border-gray-200 p-5">
+            <div className="mb-5">
+              <h2 className="text-xl font-semibold text-gray-800">Etiquetas</h2>
+              <p className="mt-1 text-sm text-gray-500">Cadastre marcações para organizar documentos.</p>
             </div>
-            <div className="space-y-4 p-4 md:p-5">
-              <div className="flex gap-2">
-                <input
-                  value={newTag}
-                  onChange={(event) => setNewTag(event.target.value)}
-                  placeholder="Nova etiqueta..."
-                  onKeyDown={(event) => { if (event.key === "Enter") createTagMutation.mutate(); }}
-                  className="flex-1 h-10 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-[#FF201A]"
-                  data-testid="input-new-tag"
-                />
-                <button onClick={() => createTagMutation.mutate()} className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FF201A] text-white hover:bg-[#e01a14] transition-colors">
-                  <Plus size={15} />
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <span key={tag.id} className="group flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-600">
-                    {tag.name}
-                  </span>
-                ))}
-              </div>
+            <div className="flex flex-col gap-3 md:flex-row">
+              <input
+                value={newTag}
+                onChange={(event) => setNewTag(event.target.value)}
+                placeholder="Nova etiqueta"
+                onKeyDown={(event) => { if (event.key === "Enter") createTagMutation.mutate(); }}
+                className="operator-action h-12 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 text-base focus:border-[#FF201A] focus:outline-none"
+                data-testid="input-new-tag"
+              />
+              <button onClick={() => createTagMutation.mutate()} className="operator-action flex h-12 items-center justify-center rounded-xl bg-[#FF201A] px-5 text-white hover:bg-[#e01a14]">
+                <Plus size={18} />
+              </button>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span key={tag.id} className="rounded-xl bg-gray-100 px-4 py-2 text-sm text-gray-700">
+                  {tag.name}
+                </span>
+              ))}
             </div>
           </div>
         )}
 
         {(activeSection === "seguranca" || activeSection === "notificacoes" || activeSection === "armazenamento") && (
-          <div className="rounded-xl bg-white border border-gray-200 shadow-sm">
-            <div className="flex flex-col items-center justify-center py-24 text-gray-300">
-              <SettingsIcon size={48} strokeWidth={1} />
-              <p className="mt-3 text-sm font-medium text-gray-400">Em desenvolvimento</p>
-              <p className="mt-1 text-xs text-gray-300">Esta seção estará disponível em breve.</p>
-            </div>
+          <div className="operator-card rounded-[18px] border border-gray-200 py-24 text-center">
+            <SettingsIcon size={48} strokeWidth={1} className="mx-auto text-gray-200" />
+            <p className="mt-4 text-base font-medium text-gray-500">Seção em desenvolvimento</p>
           </div>
         )}
       </motion.div>

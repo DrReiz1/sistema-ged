@@ -6,6 +6,7 @@ import { logRepository } from "../logs/logs.repository";
 import { groupRepository } from "../groups/groups.repository";
 import type { LoginInput, LoginRequestInput, RfidLoginInput } from "./auth.types";
 import { authRepository } from "./auth.repository";
+import { authTokenRepository } from "./auth-token.repository";
 
 class AuthService {
   async login(input: LoginRequestInput, meta: { ipAddress?: string; device?: string }) {
@@ -115,7 +116,19 @@ class AuthService {
     userId: string;
     ipAddress?: string;
     device?: string;
+    token: string;
   }) {
+    const decodedToken = jwt.decode(meta.token) as { exp?: number } | null;
+    const expiresAt = decodedToken?.exp
+      ? new Date(decodedToken.exp * 1000)
+      : new Date(Date.now() + 8 * 60 * 60 * 1000);
+
+    await authTokenRepository.revokeToken({
+      token: meta.token,
+      userId: meta.userId,
+      expiresAt,
+    });
+
     await logRepository.create({
       userId: meta.userId,
       action: "logout",

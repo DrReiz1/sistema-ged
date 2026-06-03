@@ -19,3 +19,38 @@ export interface CreateAppLogInput {
   device?: string | null;
   ipAddress?: string | null;
 }
+
+export interface AppSourceEmployeeInput {
+  id: string;
+  fullName: string;
+  operatorId: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface AppSourceNfcTagInput {
+  id: string;
+  employeeId: string;
+  nfcCode: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface AppSourceDocumentInput {
+  id: string;
+  title: string;
+  description: string;
+  viewerUrl: string;
+  fileType: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface AppSourceEmployeeDocumentPermissionInput {
+  id: string;
+  employeeId: string;
+  documentId: string;
+  grantedUntil: Date | null;
+  isActive: boolean;
+  createdAt: Date;
+}

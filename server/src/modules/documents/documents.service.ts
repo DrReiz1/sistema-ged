@@ -14,6 +14,25 @@ import type { CreateDocumentInput, ListDocumentsQuery } from "./documents.types"
 import { memoryDb, nextMemoryId, type DocumentRecord } from "../../shared/database/memory";
 
 class DocumentService {
+  private buildUnavailablePdf(document: Awaited<ReturnType<DocumentService["getById"]>> | ReturnType<DocumentService["hydrateDocument"]>, revision: {
+    revisionNumber: string;
+    fileType: string;
+    fileUrl: string;
+  }) {
+    return buildSimplePdf([
+      "DocStation GED Industrial",
+      "Arquivo original indisponivel no armazenamento configurado.",
+      "",
+      `Codigo: ${document.code}`,
+      `Titulo: ${document.title}`,
+      `Revisao: ${revision.revisionNumber}`,
+      `Tipo esperado: ${revision.fileType.toUpperCase()}`,
+      `Referencia do arquivo: ${revision.fileUrl}`,
+      "",
+      "Acao recomendada: publicar novamente esta revisao para restabelecer o preview e o download do arquivo original.",
+    ]);
+  }
+
   async getForApp(id: string) {
     const document = await documentRepository.findById(id);
     if (!document) {
@@ -234,15 +253,31 @@ class DocumentService {
         .from(supabaseStorageBucket)
         .download(revision.fileUrl);
 
-      if (error) {
-        throw new AppError("Failed to download file from Supabase", 502, error.message);
+      if (!error && data) {
+        return {
+          buffer: Buffer.from(await data.arrayBuffer()),
+          fileName,
+          fileType: revision.fileType,
+        };
       }
 
-      return {
-        buffer: Buffer.from(await data.arrayBuffer()),
-        fileName,
-        fileType: revision.fileType,
-      };
+      try {
+        return {
+          buffer: await readDocumentFile(revision.fileUrl),
+          fileName,
+          fileType: revision.fileType,
+        };
+      } catch {
+        if (revision.fileType === "pdf") {
+          return {
+            buffer: this.buildUnavailablePdf(document, revision),
+            fileName,
+            fileType: "pdf",
+          };
+        }
+
+        throw new AppError("Failed to download file from Supabase", 502, error?.message ?? "File not available");
+      }
     }
 
     const lines = [

@@ -59,12 +59,12 @@ export function AppLayout({ children }: AppLayoutProps) {
   if (!user) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#dbd8d3]">
+    <div className="flex h-screen overflow-hidden bg-[var(--surface-bg)]">
       {isMobile ? (
         <>
           {mobileOpen && (
             <div
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]"
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
               onClick={() => setMobileOpen(false)}
             />
           )}
@@ -77,21 +77,23 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
         </>
       ) : (
-        <div className="relative flex-shrink-0">
+        <div className="relative flex-shrink-0 pl-3 pb-3 pt-3">
           <Sidebar collapsed={collapsed} role={role} />
           <button
             onClick={() => setCollapsed((c) => !c)}
             data-testid="button-sidebar-toggle"
-            className="absolute -right-3 top-4 z-30 flex h-6 w-6 items-center justify-center rounded-sm bg-[#1c1f2e] text-white shadow-md hover:bg-[#2a2f45] transition-colors"
+            className="absolute -right-1 top-8 z-30 flex h-9 w-9 items-center justify-center rounded-lg border border-white/30 bg-[#1c1f2e] text-white shadow-lg transition-colors hover:bg-[#2a2f45]"
           >
-            {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         </div>
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar onMenuClick={isMobile ? () => setMobileOpen(true) : undefined} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+        <main className="operator-scrollbar flex-1 overflow-y-auto px-3 pb-4 pt-3 md:px-6 md:pb-6 md:pt-4">
+          {children}
+        </main>
       </div>
     </div>
   );

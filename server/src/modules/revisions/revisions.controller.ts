@@ -14,11 +14,13 @@ class RevisionController {
       throw new AppError("Invalid file extension", 400);
     }
 
+    const normalizedExtension = extension === "jpeg" ? "jpg" : extension;
+
     const revision = await revisionService.create({
       documentId: String(req.params.documentId),
       actorUserId: req.auth!.userId,
       fileName: file.originalname,
-      fileExtension: extension,
+      fileExtension: normalizedExtension,
       fileBuffer: file.buffer,
     });
 

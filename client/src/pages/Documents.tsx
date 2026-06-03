@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Search, Download, Eye, FileText, ChevronDown, X, GitBranch } from "lucide-react";
+import { Download, Eye, FileText, Filter, GitBranch, Search, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { buildAuthenticatedUrl, fetchJson } from "@/lib/queryClient";
 import { type ApiCategory, type ApiDocument, type ApiTag, buildDocumentQuery, mapStatusClass, mapStatusLabel } from "@/lib/docstation";
@@ -13,46 +13,51 @@ function SimpleSelect({ label, options, value, onChange }: {
   onChange: (v: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const selected = options.find((o) => o.value === value);
+  const selected = options.find((option) => option.value === value);
   const hasFilter = value !== "all";
 
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-2 rounded-lg border h-11 px-4 text-sm transition-colors ${
+        onClick={() => setOpen((current) => !current)}
+        className={`operator-action flex h-14 min-w-[180px] items-center justify-between gap-2 rounded-xl border px-4 text-left text-sm transition-colors ${
           hasFilter
-            ? "border-[#FF201A]/50 bg-[#FF201A]/5 text-[#FF201A] font-medium"
+            ? "border-[#FF201A]/40 bg-[#FF201A]/5 font-medium text-[#FF201A]"
             : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
         }`}
       >
-        <span>{hasFilter ? selected?.label : label}</span>
+        <span className="truncate">{hasFilter ? selected?.label : label}</span>
         {hasFilter ? (
           <span
-            onClick={(e) => { e.stopPropagation(); onChange("all"); setOpen(false); }}
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FF201A]/20 hover:bg-[#FF201A]/30"
+            onClick={(event) => {
+              event.stopPropagation();
+              onChange("all");
+              setOpen(false);
+            }}
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FF201A]/12"
           >
-            <X size={10} className="text-[#FF201A]" />
+            <X size={12} className="text-[#FF201A]" />
           </span>
         ) : (
-          <ChevronDown size={14} className="text-gray-400" />
+          <Filter size={16} className="text-gray-400" />
         )}
       </button>
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-1 w-56 rounded-xl border border-gray-200 bg-white shadow-lg">
-          <div className="p-1.5">
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => { onChange(opt.value); setOpen(false); }}
-                className={`flex w-full items-center px-3 py-3 text-sm rounded-lg transition-colors ${
-                  value === opt.value ? "bg-[#FF201A]/10 text-[#FF201A] font-medium" : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+        <div className="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              className={`flex min-h-[48px] w-full items-center rounded-lg px-3 text-sm transition-colors ${
+                value === option.value ? "bg-[#FF201A]/10 font-medium text-[#FF201A]" : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -89,123 +94,147 @@ export function Documents() {
   });
 
   const hasFilters = selectedType !== "all" || selectedStatus !== "all" || selectedTag !== "all";
-
   const clearAll = () => {
     setSelectedType("all");
     setSelectedStatus("all");
     setSelectedTag("all");
   };
 
-  const filtered = documents.filter((doc) => selectedStatus === "all" || doc.status === selectedStatus);
+  const filtered = documents.filter((document) => selectedStatus === "all" || document.status === selectedStatus);
 
   return (
-    <div className="space-y-5 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Documentos</h1>
-        <p className="text-sm text-gray-400 mt-0.5">{filtered.length} documento(s) encontrado(s)</p>
-      </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <section className="operator-surface rounded-[18px] border border-white/70 p-5 md:p-6">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">Consulta de documentos</p>
+              <h1 className="mt-2 text-3xl font-bold text-gray-900">Documentos</h1>
+            </div>
+            <div className="rounded-xl bg-[#fff4f3] px-4 py-3 text-sm text-gray-600">
+              <span className="font-semibold text-gray-900">{filtered.length}</span> documento(s) mostrado(s)
+            </div>
+          </div>
 
-      <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-4">
-        <div className="relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            data-testid="input-doc-search"
-            placeholder="Buscar por título, código ou descrição..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-12 pl-12 pr-10 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-[#FF201A] focus:ring-1 focus:ring-[#FF201A]/20 transition-all"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              <X size={16} />
-            </button>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2 mt-3">
-          <SimpleSelect label="Categoria" value={selectedType} onChange={setSelectedType}
-            options={[{ value: "all", label: "Todas as categorias" }, ...categories.map((t) => ({ value: t.id, label: t.name }))]} />
-          <SimpleSelect label="Status" value={selectedStatus} onChange={(value) => setSelectedStatus(value as "all" | ApiDocument["status"])}
-            options={[{ value: "all", label: "Qualquer status" }, { value: "active", label: "Ativo" }, { value: "draft", label: "Rascunho" }, { value: "archived", label: "Arquivado" }]} />
-          <SimpleSelect label="Etiqueta" value={selectedTag} onChange={setSelectedTag}
-            options={[{ value: "all", label: "Todas as etiquetas" }, ...tags.map((t) => ({ value: t.id, label: t.name }))]} />
-          {hasFilters && (
-            <button onClick={clearAll} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#FF201A] transition-colors h-11 px-2">
-              <X size={13} /> Limpar filtros
-            </button>
-          )}
-        </div>
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="rounded-xl bg-white border border-gray-200 shadow-sm py-24 flex flex-col items-center gap-4 text-gray-400">
-          <FileText size={48} strokeWidth={1} />
-          <div className="text-center">
-            <p className="text-base font-medium text-gray-600">Nenhum documento encontrado</p>
-            <p className="text-sm mt-1">Tente ajustar os filtros ou a busca</p>
+          <div className="rounded-[16px] border border-gray-200 bg-white/90 p-3 shadow-sm">
+            <div className="flex flex-col gap-3">
+              <div className="relative">
+                <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  data-testid="input-doc-search"
+                  placeholder="Buscar por titulo, codigo ou descricao"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  className="operator-action h-14 w-full rounded-xl border border-gray-200 bg-gray-50 pl-12 pr-10 text-base text-gray-700 transition-all focus:border-[#FF201A] focus:outline-none focus:ring-2 focus:ring-[#FF201A]/15"
+                />
+                {search && (
+                  <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <SimpleSelect
+                  label="Escolher categoria"
+                  value={selectedType}
+                  onChange={setSelectedType}
+                  options={[{ value: "all", label: "Todas as categorias" }, ...categories.map((category) => ({ value: category.id, label: category.name }))]}
+                />
+                <SimpleSelect
+                  label="Escolher status"
+                  value={selectedStatus}
+                  onChange={(value) => setSelectedStatus(value as "all" | ApiDocument["status"])}
+                  options={[
+                    { value: "all", label: "Qualquer status" },
+                    { value: "active", label: "Ativo" },
+                    { value: "draft", label: "Em revisão" },
+                    { value: "archived", label: "Arquivado" },
+                  ]}
+                />
+                <SimpleSelect
+                  label="Escolher etiqueta"
+                  value={selectedTag}
+                  onChange={setSelectedTag}
+                  options={[{ value: "all", label: "Todas as etiquetas" }, ...tags.map((tag) => ({ value: tag.id, label: tag.name }))]}
+                />
+                {hasFilters && (
+                  <button onClick={clearAll} className="operator-action h-14 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-500 hover:bg-gray-50">
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </section>
 
-      {filtered.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
-          {filtered.map((doc, i) => (
-            <motion.div key={doc.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-              <Link href={`/documents/${doc.id}`}>
+      {filtered.length === 0 ? (
+        <div className="operator-card rounded-[18px] border border-gray-200 py-20">
+          <div className="flex flex-col items-center gap-4 text-center text-gray-400">
+            <FileText size={52} strokeWidth={1.2} />
+            <div>
+              <p className="text-lg font-semibold text-gray-700">Nenhum documento encontrado</p>
+              <p className="mt-1 text-sm">Tente ajustar os filtros ou trocar o texto da busca.</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((document, index) => (
+            <motion.div key={document.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }}>
+              <Link href={`/documents/${document.id}`}>
                 <div
-                  className="group cursor-pointer rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all"
-                  data-testid={`card-doc-${doc.id}`}
+                  className="operator-card group cursor-pointer rounded-[18px] border border-gray-200 p-4 transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-lg"
+                  data-testid={`card-doc-${document.id}`}
                 >
-                  <div className={`relative flex h-40 md:h-48 items-center justify-center ${doc.status === "archived" ? "bg-slate-100" : "bg-gray-100"}`}>
-                    <svg viewBox="0 0 80 100" className="h-24 w-20 opacity-15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <div className={`flex min-h-[158px] items-center justify-center rounded-[16px] ${document.status === "archived" ? "bg-slate-100" : "bg-gray-100"}`}>
+                    <svg viewBox="0 0 80 100" className="h-28 w-24 opacity-15" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect x="5" y="5" width="70" height="90" rx="6" fill="#555" />
                       <rect x="14" y="18" width="52" height="5" rx="2" fill="white" opacity="0.7" />
                       <rect x="14" y="29" width="52" height="5" rx="2" fill="white" opacity="0.7" />
                       <rect x="14" y="40" width="36" height="5" rx="2" fill="white" opacity="0.7" />
                       <rect x="14" y="56" width="52" height="22" rx="3" fill="white" opacity="0.25" />
                     </svg>
-                    <div className="absolute top-3 left-3">
-                      <span className="rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-bold text-gray-500 shadow-sm">
-                        {doc.currentRevision?.fileType?.toUpperCase() ?? "SEM ARQ"}
-                      </span>
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-700 hover:bg-gray-50 shadow-md transition-colors"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          navigate(`/documents/${doc.id}`);
-                        }}>
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-gray-700 hover:bg-gray-50 shadow-md transition-colors"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          window.open(buildAuthenticatedUrl(`/api/documents/${doc.id}/download`), "_blank", "noopener,noreferrer");
-                        }}>
-                        <Download size={16} />
-                      </button>
-                    </div>
                   </div>
 
-                  <div className="p-3 md:p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[10px] font-bold text-gray-400 font-mono">{doc.code}</span>
-                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">{doc.currentRevision?.revisionNumber ?? "SEM REV"}</span>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-500">{document.code}</span>
+                    <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-bold text-blue-700">{document.currentRevision?.revisionNumber ?? "SEM REV"}</span>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${mapStatusClass(document.status)}`}>
+                      {mapStatusLabel(document.status)}
+                    </span>
+                  </div>
+
+                  <p className="mt-3 min-h-[52px] text-lg font-semibold leading-6 text-gray-800">{document.title}</p>
+                  <p className="mt-2 text-sm text-gray-500">{document.category?.name ?? "Sem categoria"}</p>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <button
+                      className="operator-action flex h-12 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigate(`/documents/${document.id}`);
+                      }}
+                    >
+                      <Eye size={16} /> Abrir
+                    </button>
+                    <button
+                      className="operator-action flex h-12 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        window.open(buildAuthenticatedUrl(`/api/documents/${document.id}/download`), "_blank", "noopener,noreferrer");
+                      }}
+                    >
+                      <Download size={16} /> Baixar
+                    </button>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
+                    <div className="flex items-center gap-1.5">
+                      <GitBranch size={14} />
+                      <span>{document.revisions.length} revisão(ões)</span>
                     </div>
-                    <p className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug min-h-[40px]">{doc.title}</p>
-                    <div className="flex items-center justify-between mt-3">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${mapStatusClass(doc.status)}`}>
-                        {mapStatusLabel(doc.status)}
-                      </span>
-                      <div className="flex items-center gap-1 text-[11px] text-gray-400">
-                        <GitBranch size={11} />
-                        <span>{doc.revisions.length}</span>
-                      </div>
-                    </div>
-                    {doc.category && (
-                      <p className="mt-2 text-[11px] text-gray-400 truncate">{doc.category.name}</p>
-                    )}
+                    <span className="font-medium text-[#FF201A] transition-transform group-hover:translate-x-0.5">Entrar</span>
                   </div>
                 </div>
               </Link>

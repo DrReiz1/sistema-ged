@@ -7,8 +7,17 @@ const allowedMimeTypes = new Map<string, string>([
   ["application/acad", "dwg"],
   ["application/dxf", "dxf"],
   ["image/x-dxf", "dxf"],
+  ["image/png", "png"],
+  ["image/jpeg", "jpg"],
+  ["image/jpg", "jpg"],
+  ["image/webp", "webp"],
   ["application/octet-stream", "bin"],
 ]);
+
+const allowedExtensions = ["pdf", "dwg", "dxf", "png", "jpg", "jpeg", "webp"];
+const extensionAliases: Record<string, string> = {
+  jpeg: "jpg",
+};
 
 export const uploadMiddleware = multer({
   storage: multer.memoryStorage(),
@@ -16,8 +25,9 @@ export const uploadMiddleware = multer({
     fileSize: 20 * 1024 * 1024,
   },
   fileFilter: (_req, file, callback) => {
-    const fileExtension = file.originalname.split(".").pop()?.toLowerCase();
-    if (!fileExtension || !["pdf", "dwg", "dxf"].includes(fileExtension)) {
+    const rawExtension = file.originalname.split(".").pop()?.toLowerCase();
+    const fileExtension = rawExtension ? (extensionAliases[rawExtension] ?? rawExtension) : undefined;
+    if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
       callback(new AppError("Unsupported file type", 400));
       return;
     }

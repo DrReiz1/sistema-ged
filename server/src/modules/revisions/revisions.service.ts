@@ -10,6 +10,16 @@ import { saveDocumentFile } from "../../shared/utils/local-document-storage";
 import type { CreateRevisionInput } from "./revisions.types";
 
 class RevisionService {
+  private getContentType(fileExtension: string) {
+    if (fileExtension === "pdf") return "application/pdf";
+    if (fileExtension === "dwg") return "image/vnd.dwg";
+    if (fileExtension === "dxf") return "application/dxf";
+    if (fileExtension === "png") return "image/png";
+    if (fileExtension === "jpg") return "image/jpeg";
+    if (fileExtension === "webp") return "image/webp";
+    return "application/octet-stream";
+  }
+
   async create(input: CreateRevisionInput) {
     const document = await documentRepository.findById(input.documentId);
     if (!document) {
@@ -30,7 +40,7 @@ class RevisionService {
       const { error } = await supabase.storage
         .from(supabaseStorageBucket)
         .upload(fileUrl, input.fileBuffer, {
-          contentType: input.fileExtension === "pdf" ? "application/pdf" : "application/octet-stream",
+          contentType: this.getContentType(input.fileExtension),
           upsert: false,
         });
 

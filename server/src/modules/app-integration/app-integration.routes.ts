@@ -14,3 +14,4 @@ appIntegrationRoutes.post("/logs", validateCreateAppLog, asyncHandler(appIntegra
 appIntegrationRoutes.use(authMiddleware);
 appIntegrationRoutes.get("/users", authorizePermissions(["users:read"]), asyncHandler(appIntegrationController.listUsers.bind(appIntegrationController)));
 appIntegrationRoutes.put("/users/:userId/access", authorizePermissions(["groups:assign"]), validateSyncAppUserAccess, asyncHandler(appIntegrationController.syncUserAccess.bind(appIntegrationController)));
+appIntegrationRoutes.post("/source/import", authorizePermissions(["groups:assign"]), asyncHandler(appIntegrationController.importSourceSnapshot.bind(appIntegrationController)));
