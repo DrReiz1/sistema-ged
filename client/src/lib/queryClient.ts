@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { readCachedJson, writeCachedJson } from "./offline-cache";
 
 const AUTH_TOKEN_KEY = "docstation.auth.token";
 
@@ -52,6 +53,10 @@ function buildHeaders(data?: unknown): HeadersInit {
   return headers;
 }
 
+function shouldCacheGet(url: string) {
+  return url.startsWith("/api/");
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -76,13 +81,32 @@ export async function apiRequest(
 }
 
 export async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    headers: buildHeaders(),
-    credentials: "include",
-  });
+  try {
+    const res = await fetch(url, {
+      headers: buildHeaders(),
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return res.json() as Promise<T>;
+    await throwIfResNotOk(res);
+    const data = await res.json() as T;
+
+    if (shouldCacheGet(url)) {
+      writeCachedJson(url, data);
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    const cached = shouldCacheGet(url) ? readCachedJson<T>(url) : null;
+    if (cached) {
+      return cached;
+    }
+
+    throw error;
+  }
 }
 
 export function buildAuthenticatedUrl(url: string): string {
@@ -101,17 +125,37 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      headers: buildHeaders(),
-      credentials: "include",
-    });
+    const url = queryKey.join("/") as string;
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    try {
+      const res = await fetch(url, {
+        headers: buildHeaders(),
+        credentials: "include",
+      });
+
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      const data = await res.json();
+      if (shouldCacheGet(url)) {
+        writeCachedJson(url, data);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      const cached = shouldCacheGet(url) ? readCachedJson<unknown>(url) : null;
+      if (cached) {
+        return cached;
+      }
+
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -21,6 +21,9 @@ import { useLocation, useParams } from "wouter";
 import { apiRequest, buildAuthenticatedUrl, fetchJson, getAuthToken, queryClient } from "@/lib/queryClient";
 import { type ApiDocument, type ApiRevision, formatDate, mapStatusClass, mapStatusLabel } from "@/lib/docstation";
 import { getRole, roleConfig } from "@/lib/roles";
+import { fetchDocumentBinary, warmDocumentBinary } from "@/lib/offline-files";
+import { queueRuntimeAction } from "@/lib/offline-sync";
+import { useConnectivity } from "@/hooks/use-connectivity";
 
 const ALLOWED_EXTENSIONS = [".pdf", ".dwg", ".dxf", ".png", ".jpg", ".jpeg", ".webp"];
 const MAX_SIZE_MB = 20;
@@ -56,6 +59,9 @@ export function DocumentView() {
   const [revisionError, setRevisionError] = useState("");
   const [downloadError, setDownloadError] = useState("");
   const [downloadingRevisionId, setDownloadingRevisionId] = useState<string | null>(null);
+  const [previewObjectUrl, setPreviewObjectUrl] = useState("");
+  const [previewUnavailable, setPreviewUnavailable] = useState("");
+  const { isOffline } = useConnectivity();
 
   const { data: user } = useQuery<{ id: string; username: string; role: string } | null>({
     queryKey: ["/api/me"],
@@ -117,6 +123,88 @@ export function DocumentView() {
     },
   });
 
+  const currentVersion = doc?.currentRevision;
+  const previewUrl = doc ? buildAuthenticatedUrl(`/api/documents/${doc.id}/preview`) : "";
+  const currentDownloadUrl = doc ? buildAuthenticatedUrl(`/api/documents/${doc.id}/download`) : "";
+  const currentFileType = currentVersion?.fileType?.toLowerCase() ?? "";
+  const canPreviewPdf = currentFileType === "pdf";
+  const canPreviewImage = INLINE_IMAGE_TYPES.has(currentFileType);
+  const previewDisplayUrl = previewObjectUrl || previewUrl;
+
+  useEffect(() => {
+    if (!doc || !currentVersion || (!canPreviewPdf && !canPreviewImage)) {
+      setPreviewUnavailable("");
+      setPreviewObjectUrl((previous) => {
+        if (previous) {
+          window.URL.revokeObjectURL(previous);
+        }
+        return "";
+      });
+      return;
+    }
+
+    let active = true;
+
+    void fetchDocumentBinary({
+      url: previewUrl,
+      documentId: doc.id,
+      revisionId: currentVersion.id,
+      mode: "preview",
+      headers: {
+        Authorization: `Bearer ${getAuthToken() ?? ""}`,
+      },
+    }).then(({ blob, source }) => {
+      if (!active) {
+        return;
+      }
+
+      const objectUrl = window.URL.createObjectURL(blob);
+      setPreviewObjectUrl((previous) => {
+        if (previous) {
+          window.URL.revokeObjectURL(previous);
+        }
+        return objectUrl;
+      });
+      setPreviewUnavailable(source === "cache" ? "Exibindo copia offline do documento." : "");
+
+      if (source === "cache" && isOffline) {
+        queueRuntimeAction({
+          action: "visualizacao",
+          documentId: doc.id,
+          revisionId: currentVersion.id,
+        }, "visualizacao_offline");
+      }
+    }).catch(() => {
+      if (!active) {
+        return;
+      }
+
+      setPreviewUnavailable("A previa offline ainda nao esta disponivel para este arquivo.");
+      setPreviewObjectUrl((previous) => {
+        if (previous) {
+          window.URL.revokeObjectURL(previous);
+        }
+        return "";
+      });
+    });
+
+    if (!isOffline) {
+      void warmDocumentBinary({
+        url: currentDownloadUrl,
+        documentId: doc.id,
+        revisionId: currentVersion.id,
+        mode: "download",
+        headers: {
+          Authorization: `Bearer ${getAuthToken() ?? ""}`,
+        },
+      });
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [canPreviewImage, canPreviewPdf, currentDownloadUrl, currentVersion, doc, isOffline, previewUrl]);
+
   if (isLoading) {
     return <div className="py-24 text-center text-gray-400">Carregando documento...</div>;
   }
@@ -136,15 +224,22 @@ export function DocumentView() {
     );
   }
 
-  const currentVersion = doc.currentRevision;
-  const previewUrl = buildAuthenticatedUrl(`/api/documents/${doc.id}/preview`);
-  const currentDownloadUrl = buildAuthenticatedUrl(`/api/documents/${doc.id}/download`);
-  const currentFileType = currentVersion?.fileType?.toLowerCase() ?? "";
-  const canPreviewPdf = currentFileType === "pdf";
-  const canPreviewImage = INLINE_IMAGE_TYPES.has(currentFileType);
-
   const handleBatchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (isOffline) {
+      queueRuntimeAction({
+        action: "conclusao_lote",
+        documentId: doc.id,
+        revisionId: doc.currentRevisionId,
+      }, "conclusao_lote_offline");
+      setBatchDone(true);
+      setShowBatchForm(false);
+      setBatchCode("");
+      setBatchNotes("");
+      setTimeout(() => setBatchDone(false), 4000);
+      return;
+    }
+
     void apiRequest("POST", "/api/logs", {
       action: "conclusao_lote",
       documentId: doc.id,
@@ -196,7 +291,54 @@ export function DocumentView() {
     }
   };
 
+  const handleOfflineDownload = async (revision?: ApiRevision) => {
+    const url = revision
+      ? buildAuthenticatedUrl(`/api/documents/${doc.id}/download?revisionId=${revision.id}`)
+      : currentDownloadUrl;
+    const targetRevisionId = revision?.id ?? doc.currentRevisionId ?? "current";
+
+    try {
+      setDownloadError("");
+      setDownloadingRevisionId(targetRevisionId);
+
+      const { blob, source } = await fetchDocumentBinary({
+        url,
+        documentId: doc.id,
+        revisionId: targetRevisionId,
+        mode: "download",
+        headers: {
+          Authorization: `Bearer ${getAuthToken() ?? ""}`,
+        },
+      });
+
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = buildDownloadName(doc, revision ?? currentVersion);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+
+      if (source === "cache") {
+        queueRuntimeAction({
+          action: "download",
+          documentId: doc.id,
+          revisionId: revision?.id ?? doc.currentRevisionId,
+        }, "download_offline");
+      }
+    } catch (error) {
+      setDownloadError(error instanceof Error ? error.message : "Nao foi possivel baixar o documento.");
+    } finally {
+      setDownloadingRevisionId(null);
+    }
+  };
+
   const handleDelete = () => {
+    if (isOffline) {
+      setDownloadError("A exclusao de documentos exige conexao com o servidor.");
+      return;
+    }
     const confirmed = window.confirm(`Excluir o documento ${doc.code}? Essa ação remove o documento e todas as revisões salvas nesta demonstração.`);
     if (!confirmed) {
       return;
@@ -226,7 +368,7 @@ export function DocumentView() {
       <button
         className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#bf0f0c] bg-[#FF201A] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e01a14]"
         data-testid={`button-download${testIdSuffix}`}
-        onClick={() => void handleDownload()}
+        onClick={() => void handleOfflineDownload()}
       >
         <Download size={14} />
         {downloadingRevisionId === (doc.currentRevisionId ?? "current") ? "Baixando..." : "Baixar versão vigente"}
@@ -362,7 +504,7 @@ export function DocumentView() {
             <button
               type="button"
               onClick={() => publishRevisionMutation.mutate()}
-              disabled={!revisionFile || publishRevisionMutation.isPending}
+              disabled={!revisionFile || publishRevisionMutation.isPending || isOffline}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
               <Upload size={13} />
@@ -428,10 +570,22 @@ export function DocumentView() {
             </div>
 
             <div className="m-3 md:m-4">
+              {isOffline && (
+                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                  Modo offline ativo. O GED continua consultando os dados ja sincronizados e vai enviar as acoes pendentes quando a conexao voltar.
+                </div>
+              )}
+
+              {previewUnavailable && (
+                <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                  {previewUnavailable}
+                </div>
+              )}
+
               {canPreviewPdf ? (
                 <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
                   <object
-                    data={previewUrl}
+                    data={previewDisplayUrl}
                     type="application/pdf"
                     className="h-[420px] w-full bg-white"
                     aria-label={`Prévia do documento ${doc.code}`}
@@ -444,7 +598,7 @@ export function DocumentView() {
                       </p>
                       <button
                         type="button"
-                        onClick={() => void handleDownload()}
+                        onClick={() => void handleOfflineDownload()}
                         className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
                       >
                         Baixar PDF
@@ -455,7 +609,7 @@ export function DocumentView() {
               ) : canPreviewImage ? (
                 <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
                   <img
-                    src={previewUrl}
+                    src={previewDisplayUrl}
                     alt={`Prévia do documento ${doc.code}`}
                     className="max-h-[520px] w-full object-contain bg-white"
                   />
@@ -469,7 +623,7 @@ export function DocumentView() {
                   </p>
                   <button
                     type="button"
-                    onClick={() => void handleDownload()}
+                    onClick={() => void handleOfflineDownload()}
                     className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
                   >
                     Baixar arquivo atual
@@ -534,7 +688,7 @@ export function DocumentView() {
                         <td className="px-4 py-3 text-right">
                           <button
                             className="ml-auto flex h-7 w-7 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-                            onClick={() => void handleDownload(revision)}
+                            onClick={() => void handleOfflineDownload(revision)}
                           >
                             <Download size={13} />
                           </button>

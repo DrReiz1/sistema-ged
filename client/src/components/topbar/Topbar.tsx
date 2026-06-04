@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { LogOut, Menu } from "lucide-react";
 import { apiRequest, queryClient, setAuthToken } from "@/lib/queryClient";
 import { getRole, roleConfig } from "@/lib/roles";
+import { useConnectivity } from "@/hooks/use-connectivity";
 
 interface TopbarProps {
   onMenuClick?: () => void;
@@ -10,6 +11,7 @@ interface TopbarProps {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const [location, navigate] = useLocation();
+  const { isOffline, pendingActions } = useConnectivity();
 
   const { data: user } = useQuery<{ id: string; username: string; role: string } | null>({
     queryKey: ["/api/me"],
@@ -60,6 +62,12 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        <div className={`hidden rounded-xl px-4 py-2 text-right md:block ${isOffline ? "bg-amber-50" : pendingActions > 0 ? "bg-blue-50" : "bg-gray-50"}`}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">Conectividade</p>
+          <p className={`mt-1 text-sm font-semibold ${isOffline ? "text-amber-700" : pendingActions > 0 ? "text-blue-700" : "text-gray-800"}`}>
+            {isOffline ? "Offline" : pendingActions > 0 ? `${pendingActions} pendencia(s)` : "Online"}
+          </p>
+        </div>
         <div className="hidden rounded-xl bg-gray-50 px-4 py-2 text-right md:block">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">Seção atual</p>
           <p className="mt-1 text-sm font-semibold text-gray-800">{currentSection}</p>
