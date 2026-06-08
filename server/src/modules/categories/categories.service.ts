@@ -1,4 +1,6 @@
 import { AppError } from "../../shared/errors/app-error";
+import { userRepository } from "../users/users.repository";
+import { appIntegrationRepository } from "../app-integration/app-integration.repository";
 import { logRepository } from "../logs/logs.repository";
 import { categoryRepository } from "./categories.repository";
 import type { CreateCategoryInput } from "./categories.types";
@@ -15,6 +17,22 @@ class CategoryService {
     }
 
     const category = await categoryRepository.create(input);
+    const masterUser = await userRepository.findByRfidTag("MASTER_DOCKSTATION_2026");
+    if (masterUser) {
+      const existingPermissions = await appIntegrationRepository.listEmployeeCategoryPermissions(masterUser.id);
+      const categoryIds = Array.from(new Set([
+        ...existingPermissions
+          .filter((entry) => entry.isActive)
+          .map((entry) => entry.categoryId),
+        category.id,
+      ]));
+
+      await appIntegrationRepository.syncEmployeeCategoryPermissions(masterUser.id, categoryIds, {
+        grantedUntil: null,
+        isActive: true,
+      });
+    }
+
     await logRepository.create({
       userId: actorUserId,
       action: "category_create",

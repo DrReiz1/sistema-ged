@@ -51,6 +51,7 @@ export interface ApiLog {
   id: string;
   userId: string;
   userName?: string | null;
+  userOperatorId?: string | null;
   action: string;
   documentId: string | null;
   revisionId: string | null;
@@ -59,6 +60,7 @@ export interface ApiLog {
   device: string | null;
   source?: "system" | "app";
   groupId?: string | null;
+  rfidTagSnapshot?: string | null;
 }
 
 export interface ApiAppProfile {

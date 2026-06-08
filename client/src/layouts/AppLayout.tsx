@@ -26,6 +26,19 @@ export function AppLayout({ children }: AppLayoutProps) {
   const allowed = roleConfig[role].allowedRoutes;
 
   useEffect(() => {
+    const storedSidebar = window.localStorage.getItem("docstation:sidebar-collapsed");
+    const storedDensity = window.localStorage.getItem("docstation:ui-density");
+
+    if (storedSidebar === "true" || storedSidebar === "false") {
+      setCollapsed(storedSidebar === "true");
+    }
+
+    if (storedDensity === "compact" || storedDensity === "normal" || storedDensity === "relaxed") {
+      document.documentElement.dataset.uiDensity = storedDensity;
+    }
+  }, []);
+
+  useEffect(() => {
     if (!isLoading && !user) {
       navigate("/");
     }

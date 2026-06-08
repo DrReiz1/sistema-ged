@@ -41,6 +41,14 @@
   --animate-spin: spin 1s linear infinite;
 }
 
+:root[data-ui-density="compact"] {
+  --touch-size: 2.75rem;
+}
+
+:root[data-ui-density="relaxed"] {
+  --touch-size: 3.35rem;
+}
+
 .animate-fade-in {
   animation: fade-in 1s var(--animation-delay, 0s) ease forwards;
 }

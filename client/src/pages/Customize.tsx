@@ -1,13 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Check, Grid, Save, Settings } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
+const DENSITY_KEY = "docstation:ui-density";
+const SIDEBAR_KEY = "docstation:sidebar-collapsed";
+
 export function Customize() {
   const [density, setDensity] = useState("normal");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const storedDensity = window.localStorage.getItem(DENSITY_KEY);
+    const storedSidebar = window.localStorage.getItem(SIDEBAR_KEY);
+
+    if (storedDensity === "compact" || storedDensity === "normal" || storedDensity === "relaxed") {
+      setDensity(storedDensity);
+      document.documentElement.dataset.uiDensity = storedDensity;
+    }
+
+    if (storedSidebar === "true" || storedSidebar === "false") {
+      setSidebarCollapsed(storedSidebar === "true");
+    }
+  }, []);
 
   const saveCustomizeMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/logs", {
@@ -21,18 +38,21 @@ export function Customize() {
   });
 
   const handleSave = () => {
+    window.localStorage.setItem(DENSITY_KEY, density);
+    window.localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed));
+    document.documentElement.dataset.uiDensity = density;
     saveCustomizeMutation.mutate();
     setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    window.setTimeout(() => setSaved(false), 2500);
   };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <section className="operator-surface rounded-[18px] border border-white/70 p-5 md:p-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">Aparência</p>
-          <h1 className="mt-2 text-3xl font-bold text-gray-900">Aparência</h1>
-          <p className="mt-2 text-sm text-gray-500">Escolha como a interface deve abrir no dia a dia.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">Aparencia</p>
+          <h1 className="mt-2 text-3xl font-bold text-gray-900">Aparencia</h1>
+          <p className="mt-2 text-sm text-gray-500">Escolha como a interface deve abrir neste terminal e salve a preferencia.</p>
         </div>
       </section>
 
@@ -57,15 +77,15 @@ export function Customize() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Espacamento</h2>
-              <p className="text-sm text-gray-500">Escolha a densidade da tela.</p>
+              <p className="text-sm text-gray-500">Escolha a densidade de uso da tela.</p>
             </div>
           </div>
 
           <div className="mt-5 space-y-3">
             {[
-              { id: "compact", label: "Compacto", desc: "Mostra mais itens na tela." },
-              { id: "normal", label: "Normal", desc: "Equilibrio entre espaco e leitura." },
-              { id: "relaxed", label: "Espacado", desc: "Mais confortavel para telas touch." },
+              { id: "compact", label: "Compacto", desc: "Mostra mais itens sem alterar a logica do sistema." },
+              { id: "normal", label: "Normal", desc: "Equilibrio entre leitura e aproveitamento da tela." },
+              { id: "relaxed", label: "Espacado", desc: "Mais conforto visual para toque e leitura prolongada." },
             ].map((option) => (
               <button
                 key={option.id}
@@ -96,7 +116,7 @@ export function Customize() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-gray-800">Menu lateral</h2>
-                <p className="text-sm text-gray-500">Defina como o menu deve abrir.</p>
+                <p className="text-sm text-gray-500">Defina como o GED deve abrir.</p>
               </div>
             </div>
 
@@ -118,9 +138,9 @@ export function Customize() {
           </div>
 
           <div className="rounded-[18px] border border-gray-200 bg-gray-50 p-5">
-            <p className="text-sm font-semibold text-gray-700">Identidade visual</p>
+            <p className="text-sm font-semibold text-gray-700">Aplicacao real</p>
             <p className="mt-2 text-sm leading-6 text-gray-500">
-              O sistema continua usando o padrao visual da TSEA para manter consistencia em todos os terminais.
+              Ao salvar, a densidade da interface e o estado inicial da barra lateral passam a valer neste navegador sem impactar a integracao entre GED e app.
             </p>
           </div>
         </div>

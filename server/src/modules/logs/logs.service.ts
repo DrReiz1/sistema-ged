@@ -95,14 +95,16 @@ class LogService {
       id: entry.id,
       userId: entry.userId,
       userName: user?.name ?? null,
+      userOperatorId: user?.operatorId ?? null,
       action: entry.action,
-      documentId: null,
+      documentId: entry.documentId,
       revisionId: null,
       timestamp: entry.timestamp,
       ipAddress: entry.ipAddress,
       device: entry.device,
       source: entry.source,
       groupId: entry.groupId,
+      rfidTagSnapshot: entry.rfidTagSnapshot,
     };
   }
 }

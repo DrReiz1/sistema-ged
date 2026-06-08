@@ -51,7 +51,23 @@ const actionMeta: Record<string, { label: string; icon: React.ReactNode; bg: str
   app_access_denied: { label: "App bloqueado", icon: <AlertTriangle size={14} />, bg: "bg-rose-50", color: "text-rose-700" },
   app_documents_viewed: { label: "Consulta no app", icon: <Smartphone size={14} />, bg: "bg-lime-50", color: "text-lime-700" },
   app_module_selected: { label: "Modulo do app", icon: <Smartphone size={14} />, bg: "bg-orange-50", color: "text-orange-700" },
+  app_login: { label: "Entrada no app", icon: <LogIn size={14} />, bg: "bg-cyan-50", color: "text-cyan-700" },
+  app_logout: { label: "Saida do app", icon: <LogOut size={14} />, bg: "bg-slate-100", color: "text-slate-700" },
+  app_document_opened: { label: "Arquivo aberto no app", icon: <Eye size={14} />, bg: "bg-sky-50", color: "text-sky-700" },
+  app_document_viewed: { label: "Arquivo visualizado no app", icon: <Eye size={14} />, bg: "bg-sky-50", color: "text-sky-700" },
+  app_document_downloaded: { label: "Arquivo baixado no app", icon: <Download size={14} />, bg: "bg-emerald-50", color: "text-emerald-700" },
 };
+
+function formatActionLabel(action: string) {
+  if (actionMeta[action]) {
+    return actionMeta[action].label;
+  }
+
+  return action
+    .replace(/^app_/, "app ")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 function ActionSelect({
   value,
@@ -149,7 +165,7 @@ export function History() {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">Rastreabilidade</p>
             <h1 className="mt-2 text-3xl font-bold text-gray-900">Historico</h1>
             <p className="mt-2 text-sm text-gray-500">
-              {isAdmin ? "Acompanhe as acoes registradas no sistema." : "Acompanhe as acoes da sua area."}
+              {isAdmin ? "Acompanhe o que foi feito no GED e no app, com identificacao de operador." : "Acompanhe as acoes da sua area."}
             </p>
           </div>
           <div className="rounded-xl bg-[#fff4f3] px-4 py-3 text-sm text-gray-600">
@@ -177,7 +193,7 @@ export function History() {
       <div className="space-y-3">
         {filtered.map((entry, index) => {
           const meta = actionMeta[entry.action] ?? {
-            label: entry.action,
+            label: formatActionLabel(entry.action),
             icon: <CreditCard size={14} />,
             bg: "bg-gray-50",
             color: "text-gray-600",
@@ -201,6 +217,11 @@ export function History() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-base font-semibold text-gray-800">{actorName}</p>
+                    {entry.userOperatorId && (
+                      <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
+                        {entry.userOperatorId}
+                      </span>
+                    )}
                     <span className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${entry.source === "app" ? "bg-cyan-50 text-cyan-700" : "bg-gray-100 text-gray-600"}`}>
                       {entry.source === "app" ? "App" : "GED"}
                     </span>
@@ -216,14 +237,31 @@ export function History() {
                         <span>{document.title}</span>
                       </>
                     ) : (
-                      <span>Acao sem documento vinculado</span>
+                      <span>{entry.source === "app" ? "Acao registrada pelo aplicativo" : "Acao sem documento vinculado"}</span>
                     )}
                   </div>
+
+                  {entry.source === "app" && (
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
+                      {entry.rfidTagSnapshot && (
+                        <span className="rounded-lg bg-cyan-50 px-3 py-1 font-semibold text-cyan-700">
+                          NFC {entry.rfidTagSnapshot}
+                        </span>
+                      )}
+                      {entry.device && (
+                        <span className="rounded-lg bg-gray-100 px-3 py-1">
+                          {entry.device}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {isAdmin && (
                     <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-400">
                       <span className="rounded-lg bg-gray-100 px-3 py-1">{entry.ipAddress ?? "local"}</span>
-                      <span className="rounded-lg bg-gray-100 px-3 py-1">{entry.device ?? "dispositivo nao informado"}</span>
+                      {entry.source !== "app" && (
+                        <span className="rounded-lg bg-gray-100 px-3 py-1">{entry.device ?? "dispositivo nao informado"}</span>
+                      )}
                     </div>
                   )}
                 </div>

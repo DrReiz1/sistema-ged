@@ -144,6 +144,7 @@ export const appAccessLogsTable = pgTable("app_access_logs", {
   userId: varchar("user_id").notNull(),
   rfidTagSnapshot: text("rfid_tag_snapshot").notNull(),
   groupId: varchar("group_id"),
+  documentId: varchar("document_id"),
   action: text("action").notNull(),
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   ipAddress: text("ip_address"),

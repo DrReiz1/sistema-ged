@@ -1,6 +1,7 @@
 import { AppError } from "../../shared/errors/app-error";
 import { appSourceDb, appSourceSupabase } from "../../shared/database/app-source-client";
 import { memoryDb } from "../../shared/database/memory";
+import { normalizeStoragePath } from "../../shared/utils/storage-path";
 import { documentService } from "../documents/documents.service";
 import { logRepository } from "../logs/logs.repository";
 import { userRepository } from "../users/users.repository";
@@ -126,7 +127,7 @@ class AppIntegrationService {
             documentId: hydrated.id,
             title: hydrated.title,
             description: hydrated.description ?? "",
-            viewerUrl: hydrated.currentRevision?.fileUrl ?? "",
+            viewerUrl: hydrated.currentRevision?.fileUrl ? normalizeStoragePath(hydrated.currentRevision.fileUrl) : "",
             fileType: hydrated.currentRevision?.fileType ?? "unknown",
             isActive: hydrated.status === "active",
           };
@@ -137,6 +138,7 @@ class AppIntegrationService {
       userId: employee.id,
       rfidTagSnapshot: this.getCurrentNfcCode(employee.id) ?? "unknown",
       action: "app_documents_viewed",
+      documentId: null,
       ipAddress: null,
       device: null,
     });
@@ -158,6 +160,7 @@ class AppIntegrationService {
       userId: input.userId,
       rfidTagSnapshot: this.getCurrentNfcCode(input.userId) ?? "unknown",
       groupId: document?.groupId ?? null,
+      documentId: input.documentId ?? null,
       action: input.action,
       ipAddress: input.ipAddress ?? null,
       device: input.device ?? null,

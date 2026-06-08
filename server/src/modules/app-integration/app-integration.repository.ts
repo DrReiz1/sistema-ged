@@ -28,11 +28,36 @@ import type {
 
 class AppIntegrationRepository {
   async listEmployees() {
+    if (db) {
+      const rows = await db.select().from(employeesTable);
+      memoryDb.employees = rows.map((row) => ({
+        ...row,
+        createdAt: new Date(row.createdAt),
+      }));
+    }
+
     return [...memoryDb.employees];
   }
 
   async findEmployeeById(employeeId: string) {
-    return memoryDb.employees.find((item) => item.id === employeeId) ?? null;
+    const cached = memoryDb.employees.find((item) => item.id === employeeId) ?? null;
+    if (cached || !db) {
+      return cached;
+    }
+
+    const row = await db.select().from(employeesTable).where(eq(employeesTable.id, employeeId)).limit(1);
+    const employee = row[0]
+      ? {
+          ...row[0],
+          createdAt: new Date(row[0].createdAt),
+        }
+      : null;
+
+    if (employee) {
+      memoryDb.employees.push(employee);
+    }
+
+    return employee;
   }
 
   async upsertEmployee(employee: EmployeeRecord) {
@@ -60,6 +85,26 @@ class AppIntegrationRepository {
   }
 
   async listNfcTags(employeeId?: string) {
+    if (db) {
+      const rows = employeeId
+        ? await db.select().from(nfcTagsTable).where(eq(nfcTagsTable.employeeId, employeeId))
+        : await db.select().from(nfcTagsTable);
+
+      const normalizedRows = rows.map((row) => ({
+        ...row,
+        createdAt: new Date(row.createdAt),
+      }));
+
+      if (employeeId) {
+        memoryDb.nfcTags = [
+          ...memoryDb.nfcTags.filter((item) => item.employeeId !== employeeId),
+          ...normalizedRows,
+        ];
+      } else {
+        memoryDb.nfcTags = normalizedRows;
+      }
+    }
+
     const tags = employeeId
       ? memoryDb.nfcTags.filter((item) => item.employeeId === employeeId)
       : memoryDb.nfcTags;
@@ -119,10 +164,53 @@ class AppIntegrationRepository {
   }
 
   async findActiveNfcTag(nfcCode: string) {
-    return memoryDb.nfcTags.find((item) => item.nfcCode === nfcCode && item.isActive) ?? null;
+    const cached = memoryDb.nfcTags.find((item) => item.nfcCode === nfcCode && item.isActive) ?? null;
+    if (cached || !db) {
+      return cached;
+    }
+
+    const row = await db.select().from(nfcTagsTable).where(eq(nfcTagsTable.nfcCode, nfcCode)).limit(1);
+    const tag = row[0]
+      ? {
+          ...row[0],
+          createdAt: new Date(row[0].createdAt),
+        }
+      : null;
+
+    if (tag) {
+      const existingIndex = memoryDb.nfcTags.findIndex((item) => item.id === tag.id);
+      if (existingIndex >= 0) {
+        memoryDb.nfcTags[existingIndex] = tag;
+      } else {
+        memoryDb.nfcTags.push(tag);
+      }
+    }
+
+    return tag?.isActive ? tag : null;
   }
 
   async listEmployeeDocumentPermissions(employeeId?: string) {
+    if (db) {
+      const rows = employeeId
+        ? await db.select().from(employeeDocumentPermissionsTable).where(eq(employeeDocumentPermissionsTable.employeeId, employeeId))
+        : await db.select().from(employeeDocumentPermissionsTable);
+
+      const normalizedRows = rows.map((row) => ({
+        ...row,
+        grantedUntil: row.grantedUntil ? new Date(row.grantedUntil) : null,
+        createdAt: new Date(row.createdAt),
+      }));
+
+      if (employeeId) {
+        memoryDb.employeeDocumentPermissions = [
+          ...memoryDb.employeeDocumentPermissions.filter((item) => item.employeeId !== employeeId),
+          ...normalizedRows,
+        ];
+      } else {
+        memoryDb.employeeDocumentPermissions = normalizedRows;
+      }
+    }
+
     const permissions = employeeId
       ? memoryDb.employeeDocumentPermissions.filter((item) => item.employeeId === employeeId)
       : memoryDb.employeeDocumentPermissions;
@@ -131,6 +219,27 @@ class AppIntegrationRepository {
   }
 
   async listEmployeeCategoryPermissions(employeeId?: string) {
+    if (db) {
+      const rows = employeeId
+        ? await db.select().from(employeeCategoryPermissionsTable).where(eq(employeeCategoryPermissionsTable.employeeId, employeeId))
+        : await db.select().from(employeeCategoryPermissionsTable);
+
+      const normalizedRows = rows.map((row) => ({
+        ...row,
+        grantedUntil: row.grantedUntil ? new Date(row.grantedUntil) : null,
+        createdAt: new Date(row.createdAt),
+      }));
+
+      if (employeeId) {
+        memoryDb.employeeCategoryPermissions = [
+          ...memoryDb.employeeCategoryPermissions.filter((item) => item.employeeId !== employeeId),
+          ...normalizedRows,
+        ];
+      } else {
+        memoryDb.employeeCategoryPermissions = normalizedRows;
+      }
+    }
+
     const permissions = employeeId
       ? memoryDb.employeeCategoryPermissions.filter((item) => item.employeeId === employeeId)
       : memoryDb.employeeCategoryPermissions;
@@ -241,13 +350,27 @@ class AppIntegrationRepository {
   }
 
   async listAppLogs() {
+    if (db) {
+      const rows = await db.select().from(appAccessLogsTable);
+      memoryDb.appAccessLogs = rows.map((row) => ({
+        ...row,
+        groupId: row.groupId ?? null,
+        documentId: row.documentId ?? null,
+        ipAddress: row.ipAddress ?? null,
+        device: row.device ?? null,
+        source: "app",
+        timestamp: new Date(row.timestamp),
+      }));
+    }
+
     return [...memoryDb.appAccessLogs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
   async createAppLog(
-    input: Omit<AppAccessLogRecord, "id" | "timestamp" | "source" | "groupId"> & {
+    input: Omit<AppAccessLogRecord, "id" | "timestamp" | "source" | "groupId" | "documentId"> & {
       timestamp?: Date;
       groupId?: string | null;
+      documentId?: string | null;
     },
   ) {
     const log = {
@@ -255,6 +378,7 @@ class AppIntegrationRepository {
       source: "app" as const,
       timestamp: input.timestamp ?? new Date(),
       groupId: input.groupId ?? null,
+      documentId: input.documentId ?? null,
       ...input,
     };
 

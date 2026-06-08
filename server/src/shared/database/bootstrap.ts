@@ -79,7 +79,7 @@ async function ensureAppRpcContracts() {
         d.id::uuid as document_id,
         d.title,
         coalesce(d.description, '') as description,
-        r.file_url as viewer_url,
+        regexp_replace(r.file_url, '^documents/', '') as viewer_url,
         coalesce(r.file_type, 'unknown') as file_type,
         (d.status = 'active') as is_active
       from public.employee_category_permissions p

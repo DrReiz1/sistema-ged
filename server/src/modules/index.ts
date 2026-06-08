@@ -20,4 +20,5 @@ export function registerModuleRoutes(app: Express): void {
   app.use("/api/logs", logRoutes);
   app.use("/api/groups", groupRoutes);
   app.use("/api/app", appIntegrationRoutes);
+  app.use("/api/app-integration", appIntegrationRoutes);
 }

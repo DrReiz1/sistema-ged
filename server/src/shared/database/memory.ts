@@ -138,6 +138,7 @@ export interface AppAccessLogRecord {
   userId: string;
   rfidTagSnapshot: string;
   groupId: string | null;
+  documentId: string | null;
   action: string;
   timestamp: Date;
   ipAddress: string | null;

@@ -5,6 +5,18 @@ import type { CreateLogInput } from "./logs.types";
 
 class LogRepository {
   async list() {
+    if (db) {
+      const rows = await db.select().from(logsTable);
+      memoryDb.logs = rows.map((row) => ({
+        ...row,
+        documentId: row.documentId ?? null,
+        revisionId: row.revisionId ?? null,
+        ipAddress: row.ipAddress ?? null,
+        device: row.device ?? null,
+        timestamp: new Date(row.timestamp),
+      }));
+    }
+
     return [...memoryDb.logs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
