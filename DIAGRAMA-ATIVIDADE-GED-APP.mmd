@@ -1,0 +1,17 @@
+flowchart TD
+    A["Operador aproxima o cracha NFC"] --> B["APP le a tag"]
+    B --> C["APP envia o codigo para o GED"]
+    C --> D{"Cracha reconhecido?"}
+
+    D -- "Nao" --> E["APP informa acesso negado"]
+    E --> F["Registrar tentativa no historico"]
+    F --> Z["Fim"]
+
+    D -- "Sim" --> G["GED valida funcionario e permissoes"]
+    G --> H["APP recebe dados publicos do operador"]
+    H --> I["APP solicita documentos liberados"]
+    I --> J["GED retorna lista de documentos autorizados"]
+    J --> K["Operador seleciona documento"]
+    K --> L["APP abre arquivo"]
+    L --> M["Registrar visualizacao ou download no historico"]
+    M --> Z["Fim"]

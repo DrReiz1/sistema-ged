@@ -8,6 +8,8 @@ const supervisorVisibleActions = new Set([
   "upload",
   "download",
   "visualizacao",
+  "document_opened",
+  "document_closed",
   "publicacao_revisao",
   "conclusao_lote",
   "app_access_granted",
@@ -68,7 +70,7 @@ class LogService {
       action: input.action,
       documentId: input.documentId ?? null,
       revisionId: input.revisionId ?? null,
-      timestamp: new Date(),
+      timestamp: input.timestamp ?? new Date(),
       ipAddress: meta.ipAddress ?? null,
       device: meta.device ?? null,
     });

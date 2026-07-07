@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor Operador
+    participant APP
+    participant GED
+    participant DB as Supabase
+
+    Operador->>APP: Aproxima cracha NFC
+    APP->>APP: Ler codigo NFC
+    APP->>GED: POST /validate-badge
+    GED->>DB: Consultar employees e nfc_tags
+    DB-->>GED: Dados do operador
+    GED-->>APP: userId, name, operatorId
+
+    APP->>GED: GET /users/:userId/documents
+    GED->>DB: Consultar permissoes e documentos
+    DB-->>GED: Lista de documentos autorizados
+    GED-->>APP: title, viewerUrl, fileType
+
+    Operador->>APP: Seleciona documento
+    APP->>DB: Buscar arquivo no bucket ou cache
+    DB-->>APP: Arquivo
+    APP-->>Operador: Exibir documento
+
+    APP->>GED: POST /logs
+    GED->>DB: Registrar acao no historico
+    DB-->>GED: Confirmacao
+    GED-->>APP: Log registrado

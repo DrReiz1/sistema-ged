@@ -1,0 +1,17 @@
+flowchart LR
+    O["1. Operador"] -->|Aproxima cracha| A["2. APP"]
+    A -->|2.1 Envia NFC| G["3. GED API"]
+    G -->|3.1 Consulta usuario e tag| S["4. Supabase"]
+    S -->|3.2 Retorna operador valido| G
+    G -->|2.2 Retorna autenticacao| A
+
+    A -->|2.3 Solicita documentos| G
+    G -->|3.3 Consulta permissoes e documentos| S
+    S -->|3.4 Retorna documentos liberados| G
+    G -->|2.4 Retorna lista ao APP| A
+
+    A -->|2.5 Solicita arquivo| S
+    S -->|2.6 Entrega arquivo| A
+
+    A -->|2.7 Envia log de acesso| G
+    G -->|3.5 Grava log| S

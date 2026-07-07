@@ -12,4 +12,5 @@ export interface CreateRuntimeLogInput {
   action: string;
   documentId?: string | null;
   revisionId?: string | null;
+  timestamp?: Date;
 }

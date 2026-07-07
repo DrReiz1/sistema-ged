@@ -1,5 +1,5 @@
 import { enqueueOfflineAction, getOfflineQueue, isBrowserOffline, removeQueuedAction } from "./offline-cache";
-import { getAuthToken } from "./queryClient";
+import { getAuthToken, queryClient } from "./queryClient";
 
 let flushPromise: Promise<void> | null = null;
 
@@ -27,6 +27,8 @@ export async function flushOfflineQueue() {
     }
 
     const queue = [...getOfflineQueue()];
+    let flushedAnyAction = false;
+
     for (const entry of queue) {
       try {
         const response = await fetch(entry.url, {
@@ -45,9 +47,15 @@ export async function flushOfflineQueue() {
         }
 
         removeQueuedAction(entry.id);
+        flushedAnyAction = true;
       } catch {
         break;
       }
+    }
+
+    if (flushedAnyAction) {
+      await queryClient.invalidateQueries({ queryKey: ["/api/logs"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
     }
   })().finally(() => {
     flushPromise = null;
@@ -60,11 +68,15 @@ export function queueRuntimeAction(body: {
   action: string;
   documentId?: string | null;
   revisionId?: string | null;
+  timestamp?: string;
 }, label: string) {
   enqueueOfflineAction({
     method: "POST",
     url: "/api/logs",
-    body,
+    body: {
+      ...body,
+      timestamp: body.timestamp ?? new Date().toISOString(),
+    },
     label,
   });
 }

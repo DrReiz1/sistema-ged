@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -61,6 +61,7 @@ export function DocumentView() {
   const [downloadingRevisionId, setDownloadingRevisionId] = useState<string | null>(null);
   const [previewObjectUrl, setPreviewObjectUrl] = useState("");
   const [previewUnavailable, setPreviewUnavailable] = useState("");
+  const openLogSentRef = useRef<string | null>(null);
   const { isOffline } = useConnectivity();
 
   const { data: user } = useQuery<{ id: string; username: string; role: string } | null>({
@@ -73,6 +74,7 @@ export function DocumentView() {
   const { data: doc, isLoading } = useQuery<ApiDocument>({
     queryKey: ["/api/documents", id],
     queryFn: () => fetchJson<ApiDocument>(`/api/documents/${id}`),
+    refetchOnMount: "always",
   });
 
   const deleteDocumentMutation = useMutation({
@@ -132,6 +134,41 @@ export function DocumentView() {
   const previewDisplayUrl = previewObjectUrl || previewUrl;
 
   useEffect(() => {
+    if (!doc || openLogSentRef.current === doc.id) {
+      return;
+    }
+
+    openLogSentRef.current = doc.id;
+    const openedDocumentId = doc.id;
+    const openedRevisionId = doc.currentRevisionId;
+    const registerRuntimeAction = (action: string, label: string) => {
+      const body = {
+        action,
+        documentId: openedDocumentId,
+        revisionId: openedRevisionId,
+        timestamp: new Date().toISOString(),
+      };
+
+      if (navigator.onLine === false) {
+        queueRuntimeAction(body, label);
+        return;
+      }
+
+      void apiRequest("POST", "/api/logs", body).then(async () => {
+        await queryClient.invalidateQueries({ queryKey: ["/api/logs"] });
+      }).catch(() => {
+        queueRuntimeAction(body, `${label}_pendente`);
+      });
+    };
+
+    registerRuntimeAction("document_opened", "document_opened_offline");
+
+    return () => {
+      registerRuntimeAction("document_closed", "document_closed_offline");
+    };
+  }, [doc?.currentRevisionId, doc?.id]);
+
+  useEffect(() => {
     if (!doc || !currentVersion || (!canPreviewPdf && !canPreviewImage)) {
       setPreviewUnavailable("");
       setPreviewObjectUrl((previous) => {
@@ -166,6 +203,7 @@ export function DocumentView() {
         return objectUrl;
       });
       setPreviewUnavailable(source === "cache" ? "Exibindo copia offline do documento." : "");
+      void queryClient.invalidateQueries({ queryKey: ["/api/logs"] });
 
       if (source === "cache" && isOffline) {
         queueRuntimeAction({
@@ -319,6 +357,7 @@ export function DocumentView() {
       link.click();
       link.remove();
       window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+      await queryClient.invalidateQueries({ queryKey: ["/api/logs"] });
 
       if (source === "cache") {
         queueRuntimeAction({
