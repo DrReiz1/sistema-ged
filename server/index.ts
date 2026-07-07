@@ -2,7 +2,6 @@ import { createServer } from "http";
 import { app } from "./src/app";
 import { bootstrapMemoryDatabase } from "./src/shared/database/bootstrap";
 import { serveStatic } from "./static";
-import { setupVite } from "./vite";
 
 const port = Number(process.env.PORT ?? 5000);
 
@@ -14,6 +13,7 @@ async function startServer() {
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
+    const { setupVite } = await import("./vite");
     await setupVite(server, app);
   }
 
