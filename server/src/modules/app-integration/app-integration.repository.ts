@@ -113,6 +113,7 @@ class AppIntegrationRepository {
   }
 
   async replaceEmployeeNfcTag(employeeId: string, nfcCode: string | null, isActive: boolean) {
+    const normalizedNfcCode = nfcCode?.trim() || null;
     const currentTags = memoryDb.nfcTags.filter((item) => item.employeeId === employeeId);
 
     if (db) {
@@ -127,19 +128,21 @@ class AppIntegrationRepository {
       tag.isActive = false;
     });
 
-    if (!nfcCode) {
+    if (!normalizedNfcCode) {
       return null;
     }
 
-    const existingByCode = memoryDb.nfcTags.find((item) => item.nfcCode === nfcCode) ?? null;
+    const existingByCode = memoryDb.nfcTags.find((item) => item.nfcCode.trim() === normalizedNfcCode) ?? null;
     if (existingByCode) {
       existingByCode.employeeId = employeeId;
+      existingByCode.nfcCode = normalizedNfcCode;
       existingByCode.isActive = isActive;
 
       if (db) {
         await db.update(nfcTagsTable)
           .set({
             employeeId,
+            nfcCode: normalizedNfcCode,
             isActive,
           })
           .where(eq(nfcTagsTable.id, existingByCode.id));
@@ -151,7 +154,7 @@ class AppIntegrationRepository {
     const tagRow: NfcTagRecord = {
       id: nextMemoryId(),
       employeeId,
-      nfcCode,
+      nfcCode: normalizedNfcCode,
       isActive,
       createdAt: new Date(),
     };
@@ -164,12 +167,13 @@ class AppIntegrationRepository {
   }
 
   async findActiveNfcTag(nfcCode: string) {
-    const cached = memoryDb.nfcTags.find((item) => item.nfcCode === nfcCode && item.isActive) ?? null;
+    const normalizedNfcCode = nfcCode.trim();
+    const cached = memoryDb.nfcTags.find((item) => item.nfcCode.trim() === normalizedNfcCode && item.isActive) ?? null;
     if (cached || !db) {
       return cached;
     }
 
-    const row = await db.select().from(nfcTagsTable).where(eq(nfcTagsTable.nfcCode, nfcCode)).limit(1);
+    const row = await db.select().from(nfcTagsTable).where(eq(nfcTagsTable.nfcCode, normalizedNfcCode)).limit(1);
     const tag = row[0]
       ? {
           ...row[0],

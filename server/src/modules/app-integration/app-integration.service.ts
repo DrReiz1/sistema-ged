@@ -25,6 +25,7 @@ class AppIntegrationService {
   }
 
   async syncUserAccess(input: SyncAppUserAccessInput, actorUserId: string) {
+    const normalizedNfcCode = input.nfcCode?.trim() || null;
     const user = await userRepository.findById(input.userId);
     if (!user) {
       throw new AppError("User not found", 404);
@@ -37,8 +38,8 @@ class AppIntegrationService {
       }
     }
 
-    if (input.nfcCode) {
-      const tagOwner = memoryDb.nfcTags.find((item) => item.nfcCode === input.nfcCode && item.employeeId !== input.userId);
+    if (normalizedNfcCode) {
+      const tagOwner = memoryDb.nfcTags.find((item) => item.nfcCode.trim() === normalizedNfcCode && item.employeeId !== input.userId);
       if (tagOwner) {
         throw new AppError("NFC tag already assigned to another employee", 409);
       }
@@ -46,7 +47,7 @@ class AppIntegrationService {
 
     await userRepository.updateAppIdentity(user.id, {
       operatorId: user.operatorId,
-      rfidTag: input.nfcCode,
+      rfidTag: normalizedNfcCode,
     });
 
     await appIntegrationRepository.upsertEmployee({
@@ -57,7 +58,7 @@ class AppIntegrationService {
       createdAt: user.createdAt,
     });
 
-    await appIntegrationRepository.replaceEmployeeNfcTag(user.id, input.nfcCode, input.nfcActive);
+    await appIntegrationRepository.replaceEmployeeNfcTag(user.id, normalizedNfcCode, input.nfcActive);
     await logRepository.create({
       userId: actorUserId,
       action: "alteracao_permissao",
@@ -77,15 +78,16 @@ class AppIntegrationService {
   }
 
   async validateBadge(input: ValidateBadgeInput, meta: { ipAddress?: string; device?: string }) {
-    const tag = await appIntegrationRepository.findActiveNfcTag(input.rfidTag);
+    const normalizedRfidTag = input.rfidTag.trim();
+    const tag = await appIntegrationRepository.findActiveNfcTag(normalizedRfidTag);
     const employee = tag ? await appIntegrationRepository.findEmployeeById(tag.employeeId) : null;
 
     if (!tag || !employee || !employee.isActive) {
-      const knownUser = await userRepository.findByRfidTag(input.rfidTag);
+      const knownUser = await userRepository.findByRfidTag(normalizedRfidTag);
       if (knownUser) {
         await appIntegrationRepository.createAppLog({
           userId: knownUser.id,
-          rfidTagSnapshot: input.rfidTag,
+          rfidTagSnapshot: normalizedRfidTag,
           action: "app_access_denied",
           ipAddress: meta.ipAddress ?? null,
           device: meta.device ?? null,
@@ -97,7 +99,7 @@ class AppIntegrationService {
 
     await appIntegrationRepository.createAppLog({
       userId: employee.id,
-      rfidTagSnapshot: input.rfidTag,
+      rfidTagSnapshot: normalizedRfidTag,
       action: "app_access_granted",
       ipAddress: meta.ipAddress ?? null,
       device: meta.device ?? null,

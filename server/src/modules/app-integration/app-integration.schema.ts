@@ -10,7 +10,7 @@ export const syncAppUserAccessSchema = z.object({
 });
 
 export const validateBadgeSchema = z.object({
-  rfidTag: z.string().min(4),
+  rfidTag: z.string().trim().min(4),
 });
 
 export const createAppLogSchema = z.object({

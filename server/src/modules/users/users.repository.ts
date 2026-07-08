@@ -22,7 +22,8 @@ class UserRepository {
   }
 
   async findByRfidTag(rfidTag: string) {
-    return memoryDb.users.find((user) => user.rfidTag === rfidTag) ?? null;
+    const normalizedRfidTag = rfidTag.trim();
+    return memoryDb.users.find((user) => user.rfidTag?.trim() === normalizedRfidTag) ?? null;
   }
 
   async create(input: CreateUserInput & { passwordHash: string }) {
@@ -33,7 +34,7 @@ class UserRepository {
       passwordHash: input.passwordHash,
       role: input.role,
       operatorId: input.operatorId,
-      rfidTag: input.rfidTag ?? null,
+      rfidTag: input.rfidTag?.trim() || null,
       sector: input.sector,
       active: input.active ?? true,
       createdAt: new Date(),
@@ -58,7 +59,7 @@ class UserRepository {
     }
 
     if (typeof input.rfidTag !== "undefined") {
-      user.rfidTag = input.rfidTag;
+      user.rfidTag = input.rfidTag?.trim() || null;
     }
 
     if (db) {
